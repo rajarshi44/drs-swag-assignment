@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import ProductsPanel from '@/components/admin/ProductsPanel';
 import CouponsPanel from '@/components/admin/CouponsPanel';
+import OrderDetailsModal from '@/components/admin/OrderDetailsModal';
 
 type TabType = 'overview' | 'products' | 'coupons' | 'ai';
 
@@ -29,6 +30,8 @@ export default function AdminPage() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -56,12 +59,33 @@ export default function AdminPage() {
       setStats({
         revenue: totalRevenue,
         totalOrders: ordersRes.data.length,
-        pendingOrders: ordersRes.data.filter((o: any) => !o.isDelivered).length
+        pendingOrders: ordersRes.data.filter((o: any) => o.status === 'pending').length
       });
     } catch (error) {
       console.error('Failed to fetch admin data', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    try {
+      await api.patch(`/orders/${orderId}/status`, { status: newStatus });
+      
+      const updatedOrders = orders.map(o => o._id === orderId ? { ...o, status: newStatus } : o);
+      setOrders(updatedOrders);
+      
+      // Update stats based on the new local state
+      const totalRevenue = updatedOrders.reduce((acc: number, o: any) => acc + o.finalAmount, 0);
+      setStats({
+        revenue: totalRevenue,
+        totalOrders: updatedOrders.length,
+        pendingOrders: updatedOrders.filter((o: any) => o.status === 'pending').length
+      });
+      
+    } catch (error) {
+      console.error('Failed to update status', error);
+      alert('Failed to update order status');
     }
   };
 
@@ -167,6 +191,7 @@ export default function AdminPage() {
               <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col flex-1">
                  <div className="p-5 border-b border-zinc-100 dark:border-zinc-800">
                     <h3 className="font-semibold text-zinc-900 dark:text-white">Recent Orders</h3>
+                    <p className="text-xs text-zinc-500 mt-1">Click on a row to view full order details</p>
                  </div>
                  <div className="overflow-y-auto flex-1">
                     <table className="w-full text-left text-sm">
@@ -183,19 +208,34 @@ export default function AdminPage() {
                           {orders.length === 0 ? (
                             <tr><td colSpan={5} className="px-5 py-8 text-center text-zinc-400">No orders yet</td></tr>
                           ) : orders.slice(0, 10).map((order) => (
-                             <tr key={order._id} className="hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">
+                             <tr 
+                                key={order._id} 
+                                onClick={() => {
+                                    setSelectedOrder(order);
+                                    setIsOrderModalOpen(true);
+                                }}
+                                className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer group"
+                             >
                                 <td className="px-5 py-4 font-mono text-zinc-500 text-xs">{order._id.substring(0,8)}...</td>
                                 <td className="px-5 py-4 text-zinc-900 dark:text-zinc-100">{order.customerInfo?.name || 'Guest'}</td>
                                 <td className="px-5 py-4 font-medium text-zinc-900 dark:text-white">${order.finalAmount.toFixed(2)}</td>
                                 <td className="px-5 py-4 text-zinc-500">{new Date(order.createdAt).toLocaleDateString()}</td>
                                 <td className="px-5 py-4">
-                                  <span className={`text-xs px-2 py-1 rounded-full ${
-                                    order.isDelivered 
-                                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                      : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                  }`}>
-                                    {order.isDelivered ? 'Delivered' : 'Pending'}
-                                  </span>
+                                  <select
+                                    value={order.status === 'completed' ? 'fulfilled' : order.status}
+                                    onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                                    className={`text-xs px-2 py-1 rounded-full border-none focus:ring-1 focus:ring-zinc-200 cursor-pointer appearance-none ${
+                                      (order.status === 'fulfilled' || order.status === 'completed')
+                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                        : order.status === 'cancelled'
+                                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                        : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                    }`}
+                                  >
+                                    <option value="pending">Pending</option>
+                                    <option value="fulfilled">Fulfilled</option>
+                                    <option value="cancelled">Cancelled</option>
+                                  </select>
                                 </td>
                              </tr>
                           ))}
@@ -203,6 +243,12 @@ export default function AdminPage() {
                     </table>
                  </div>
               </div>
+              
+              <OrderDetailsModal 
+                isOpen={isOrderModalOpen} 
+                onClose={() => setIsOrderModalOpen(false)} 
+                order={selectedOrder} 
+              />
             </div>
           )}
 

@@ -105,11 +105,11 @@ productSchema.virtual('totalStock').get(function() {
     return this.stock;
 });
 
-// Pre-save validation
-productSchema.pre('save', function(next) {
+// Pre-validate hook to generate SKUs before validation checks
+productSchema.pre('validate', async function() {
     // If hasVariants is true, ensure at least one variant exists
     if (this.hasVariants && (!this.variants || this.variants.length === 0)) {
-        next(new Error('Products with variants must have at least one variant'));
+        throw new Error('Products with variants must have at least one variant');
     }
     
     // Generate SKUs for variants if not provided
@@ -121,8 +121,6 @@ productSchema.pre('save', function(next) {
             }
         });
     }
-    
-    next();
 });
 
 module.exports = mongoose.model('Product', productSchema);

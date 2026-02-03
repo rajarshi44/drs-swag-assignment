@@ -63,4 +63,23 @@ const deleteProduct = async (req, res) => {
     }
 };
 
-module.exports = { getProducts, getProductById, createProduct, deleteProduct };
+// @desc    Update a product
+// @route   PUT /api/products/:id
+// @access  Admin
+const updateProduct = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+
+        if (product) {
+            Object.assign(product, req.body);
+            const updatedProduct = await product.save();
+            res.json(updatedProduct);
+        } else {
+            res.status(404).json({ message: 'Product not found' });
+        }
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+module.exports = { getProducts, getProductById, createProduct, updateProduct, deleteProduct };

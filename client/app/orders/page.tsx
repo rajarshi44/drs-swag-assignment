@@ -23,19 +23,9 @@ export default function MyOrdersPage() {
 
   const fetchOrders = async () => {
     try {
-      // Assuming GET /orders returns all for admin, but we might need a specific endpoint or filter
-      // For now, let's filter client side or implement a quick backend change. 
-      // Plan: Let's assume GET /orders returns *my* orders if user, *all* if admin.
-      // I need to verify orderController.js logic.
-      const { data } = await api.get('/orders');
-      // If the backend returns all orders, and I'm a user, I should filter. 
-      // Ideally backend handles this. Let's assume backend needs an update but for now I'll filter here if 'customerInfo.email' matches or something.
-      // But wait, the orderController `getOrders` returns ALL orders currently.
-      // I should update the backend to filter by user.
-      
-      // Temporary: Client-side filter by email if available in customerInfo
-      const myOrders = data.filter((o: any) => o.user === user?._id || o.customerInfo?.email === user?.email);
-      setOrders(myOrders);
+      if (!user?._id) return;
+      const { data } = await api.get(`/orders?userId=${user._id}`);
+      setOrders(data);
     } catch (error) {
       console.error('Failed to fetch orders', error);
     } finally {
@@ -43,7 +33,12 @@ export default function MyOrdersPage() {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-zinc-50 dark:bg-black font-sans">
+      <Navbar />
+      <div className="flex items-center justify-center h-[60vh] text-zinc-400">Loading your orders...</div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black font-sans">
@@ -60,11 +55,11 @@ export default function MyOrdersPage() {
         ) : (
            <div className="space-y-6">
               {orders.map((order) => (
-                 <div key={order._id} className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-sm">
+                 <div key={order._id} className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-6 shadow-sm overflow-hidden">
                     <div className="flex flex-col sm:flex-row justify-between mb-4 border-b border-zinc-100 dark:border-zinc-800 pb-4">
                        <div>
                           <p className="text-xs text-zinc-500 uppercase tracking-wide font-semibold">Order ID</p>
-                          <p className="font-mono text-sm text-zinc-900 dark:text-zinc-300">{order._id}</p>
+                          <p className="font-mono text-sm text-zinc-900 dark:text-zinc-300">{order._id.substring(0, 8)}...{order._id.substring(order._id.length - 4)}</p>
                        </div>
                        <div className="flex items-center gap-2 mt-2 sm:mt-0">
                           <FiCalendar className="text-zinc-400" />
@@ -74,20 +69,36 @@ export default function MyOrdersPage() {
                        </div>
                     </div>
 
-                    <div className="space-y-3 mb-4">
-                       {order.items.map((item: any, idx: number) => (
-                           <div key={idx} className="flex justify-between text-sm">
-                               <span className="text-zinc-700 dark:text-zinc-300 overflow-hidden text-ellipsis whitespace-nowrap max-w-[70%]">
-                                   {item.quantity}x Product ({item.product}) {/* Ideally product name populated */}
-                               </span>
+                    <div className="space-y-4 mb-4">
+                       {order.items.map((item: any, idx: number) => {
+                           const product = item.product || {};
+                           return (
+                           <div key={idx} className="flex gap-4 items-center">
+                               {product.image ? (
+                                   <div className="w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 overflow-hidden relative flex-shrink-0">
+                                       <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                   </div>
+                               ) : (
+                                   <div className="w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-400 flex-shrink-0">
+                                       ?
+                                   </div>
+                               )}
+                               <div className="flex-1 min-w-0">
+                                   <p className="text-sm font-medium text-zinc-900 dark:text-white truncate">
+                                       {item.quantity}x {product.name || 'Unknown Product'}
+                                   </p>
+                                   <p className="text-xs text-zinc-500">
+                                       ${(item.priceAtPurchase).toFixed(2)} each
+                                   </p>
+                               </div>
                                <span className="font-medium text-zinc-900 dark:text-white">
                                    ${(item.priceAtPurchase * item.quantity).toFixed(2)}
                                </span>
                            </div>
-                       ))}
+                       )})}
                     </div>
 
-                    <div className="flex justify-between items-center pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                    <div className="flex justify-between items-center pt-4 border-t border-zinc-100 dark:border-zinc-800">
                        <div className="flex items-center gap-2">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                               order.isDelivered ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'

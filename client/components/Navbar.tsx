@@ -1,16 +1,11 @@
-"use client";
-
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { FiShoppingBag, FiUser, FiLogOut, FiGrid } from 'react-icons/fi';
-import { useState } from 'react';
-import CartDrawer from './CartDrawer';
 
 export default function Navbar() {
-  const { items } = useCart();
+  const { items, toggleCart } = useCart();
   const { user, logout, isAuthenticated } = useAuth();
-  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -74,7 +69,7 @@ export default function Navbar() {
 
               {/* Cart Button */}
               <button
-                onClick={() => setIsCartOpen(true)}
+                onClick={() => toggleCart(true)}
                 className="relative p-2.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-all rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 title="Cart"
               >
@@ -89,7 +84,6 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </>
   );
 }

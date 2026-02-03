@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api';
-import { FiPlus, FiTrash2, FiPackage, FiX, FiAlertCircle, FiUpload, FiImage, FiDollarSign } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiPackage, FiX, FiAlertCircle, FiUpload, FiImage, FiDollarSign, FiEdit2 } from 'react-icons/fi';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -47,6 +47,8 @@ export default function ProductsPanel({ onCountChange }: ProductsPanelProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [productForm, setProductForm] = useState({
@@ -106,7 +108,7 @@ export default function ProductsPanel({ onCountChange }: ProductsPanelProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleAddProduct = async (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -122,14 +124,40 @@ export default function ProductsPanel({ onCountChange }: ProductsPanelProps) {
         tieredPricing: productForm.hasBulkPricing ? productForm.tieredPricing : []
       };
       
-      await api.post('/products', payload);
-      toast.success('Product added successfully!');
+      if (editingId) {
+        await api.put(`/products/${editingId}`, payload);
+        toast.success('Product updated successfully!');
+      } else {
+        await api.post('/products', payload);
+        toast.success('Product added successfully!');
+      }
+
       resetForm();
       setShowAddProduct(false);
       fetchProducts();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to add product');
+      toast.error(error.response?.data?.message || 'Failed to save product');
     }
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setProductForm({
+      name: product.name,
+      description: product.description,
+      category: product.category,
+      price: product.price,
+      stock: product.stock || 0,
+      image: product.image,
+      hasVariants: product.hasVariants,
+      variants: product.variants || [],
+      hasBulkPricing: !!(product.tieredPricing && product.tieredPricing.length > 0),
+      tieredPricing: product.tieredPricing || []
+    });
+    setEditingId(product._id);
+    setImagePreview(product.image);
+    setShowAddProduct(true);
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const resetForm = () => {
@@ -145,8 +173,10 @@ export default function ProductsPanel({ onCountChange }: ProductsPanelProps) {
       hasBulkPricing: false,
       tieredPricing: []
     });
+
     setErrors({});
     setImagePreview(null);
+    setEditingId(null);
   };
 
   // Tiered Pricing helpers
@@ -301,7 +331,13 @@ export default function ProductsPanel({ onCountChange }: ProductsPanelProps) {
             exit={{ height: 0, opacity: 0 }}
             className="border-b border-zinc-100 dark:border-zinc-800 overflow-hidden"
           >
-            <form onSubmit={handleAddProduct} className="p-5 bg-zinc-50 dark:bg-zinc-800/50 space-y-4">
+            <div className="p-5 bg-zinc-50 dark:bg-zinc-800/50">
+             <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold text-zinc-900 dark:text-white">
+                  {editingId ? 'Edit Product' : 'Add New Product'}
+                </h3>
+             </div>
+             <form onSubmit={handleSaveProduct} className="space-y-4">
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="col-span-full">
@@ -639,6 +675,7 @@ export default function ProductsPanel({ onCountChange }: ProductsPanelProps) {
                 </button>
               </div>
             </form>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -673,8 +710,16 @@ export default function ProductsPanel({ onCountChange }: ProductsPanelProps) {
                     </span>
                   )}
                   <button 
+                    onClick={() => handleEditProduct(product)} 
+                    className="p-2 text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Edit"
+                  >
+                    <FiEdit2 className="w-4 h-4" />
+                  </button>
+                  <button 
                     onClick={() => handleDeleteProduct(product._id)} 
                     className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Delete"
                   >
                     <FiTrash2 className="w-4 h-4" />
                   </button>

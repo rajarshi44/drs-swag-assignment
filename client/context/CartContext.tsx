@@ -30,7 +30,10 @@ interface CartContextType {
   coupon: CouponData | null;
   applyCoupon: (data: CouponData) => void;
   removeCoupon: () => void;
+  removeCoupon: () => void;
   finalTotal: number;
+  isCartOpen: boolean;
+  toggleCart: (isOpen?: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -39,6 +42,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [coupon, setCoupon] = useState<CouponData | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -50,7 +54,19 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (isClient) {
-      localStorage.setItem('cart', JSON.stringify(items));
+      // Don't save large base64 images to localStorage
+      const itemsToSave = items.map(item => {
+        if (item.image && item.image.startsWith('data:')) {
+          const { image, ...rest } = item;
+          return rest;
+        }
+        return item;
+      });
+      try {
+        localStorage.setItem('cart', JSON.stringify(itemsToSave));
+      } catch (error) {
+        console.error('Failed to save cart to localStorage:', error);
+      }
     }
   }, [items, isClient]);
 
@@ -65,7 +81,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         );
       }
       return [...prev, newItem];
+      return [...prev, newItem];
     });
+    // Optional: Open cart when adding item
+    setIsCartOpen(true);
   };
 
   const removeFromCart = (productId: string) => {
@@ -106,6 +125,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const finalTotal = Math.max(0, cartTotal - discount);
 
+  const toggleCart = (isOpen?: boolean) => {
+    setIsCartOpen(prev => isOpen ?? !prev);
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -119,6 +142,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         applyCoupon,
         removeCoupon,
         finalTotal,
+        isCartOpen,
+        toggleCart,
       }}
     >
       {children}

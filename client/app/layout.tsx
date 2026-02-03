@@ -28,20 +28,25 @@ export const metadata: Metadata = {
   description: "Premium merchandise for the developer community.",
 };
 
+import Chatbot from '@/components/Chatbot';
+import { CartDrawerWrapper } from "@/components/cart/CartDrawerWrapper";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${playfair.variable} ${cormorant.variable} antialiased font-sans`}
       >
         <AuthProvider>
           <CartProvider>
-            <Toaster richColors position="top-center" />
             {children}
+            <CartDrawerWrapper />
+            <Toaster position="bottom-right" />
+            <Chatbot />
           </CartProvider>
         </AuthProvider>
       </body>

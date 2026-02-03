@@ -16,7 +16,7 @@ const chatWithAI = async (req, res) => {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-2.5" });
 
         // 1. Gather Context
         const products = await Product.find({}, 'name stock price category');
