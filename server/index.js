@@ -16,12 +16,19 @@ const handle = nextApp.getRequestHandler();
 
 const PORT = process.env.PORT || 5000;
 
+console.log('Starting Next.js preparation...');
 nextApp.prepare().then(() => {
+  console.log('Next.js prepared. Starting Express server...');
   const app = express();
 
   app.use(express.json({ limit: '200mb' }));
   app.use(express.urlencoded({ limit: '200mb', extended: true }));
   app.use(cors());
+
+  // Health check route
+  app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', message: 'Server is running' });
+  });
 
   // Routes Placeholder
   app.use('/api/products', require('./routes/productRoutes'));
@@ -37,4 +44,7 @@ nextApp.prepare().then(() => {
   });
 
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}).catch((err) => {
+  console.error('Error preparing Next.js app:', err);
+  process.exit(1);
 });
