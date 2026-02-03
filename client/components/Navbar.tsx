@@ -3,10 +3,9 @@
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
-import { FiShoppingBag, FiUser, FiLogOut } from 'react-icons/fi';
+import { FiShoppingBag, FiUser, FiLogOut, FiGrid } from 'react-icons/fi';
 import { useState } from 'react';
 import CartDrawer from './CartDrawer';
-import clsx from 'clsx';
 
 export default function Navbar() {
   const { items } = useCart();
@@ -17,51 +16,72 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-zinc-100 dark:bg-black/80 dark:border-zinc-800">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-zinc-100 dark:bg-zinc-950/90 dark:border-zinc-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent transform hover:scale-105 transition-transform duration-200">
+            {/* Logo */}
+            <Link 
+              href="/" 
+              className="text-2xl font-cursive italic text-zinc-900 dark:text-white hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+            >
               SwagStore
             </Link>
 
-            <div className="flex items-center space-x-6">
+            {/* Navigation Links */}
+            <div className="flex items-center gap-6">
               {isAuthenticated ? (
-                  <div className="flex items-center gap-4">
-                      <span className="text-sm font-medium text-zinc-900 dark:text-zinc-200 hidden sm:block">
-                          Welcome, {user?.name.split(' ')[0]}
-                      </span>
-                      {user?.role === 'admin' && (
-                          <Link href="/admin" className="text-sm font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400">
-                            Dashboard
-                          </Link>
-                      )}
-                      {/* My Orders Link */}
-                      {user?.role !== 'admin' && (
-                           <Link href="/orders" className="text-sm font-medium text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-white transition-colors">
-                              Orders
-                           </Link>
-                      )}
-                      
-                      <button onClick={logout} className="p-2 text-zinc-400 hover:text-red-500 transition-colors" title="Logout">
-                          <FiLogOut className="w-5 h-5" />
-                      </button>
-                  </div>
+                <div className="flex items-center gap-5">
+                  <span className="text-sm text-zinc-500 dark:text-zinc-400 hidden sm:block">
+                    <span className="font-cursive italic text-zinc-700 dark:text-zinc-300">{user?.name.split(' ')[0]}</span>
+                  </span>
+                  
+                  {user?.role === 'admin' && (
+                    <Link 
+                      href="/admin" 
+                      className="flex items-center gap-1.5 text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+                    >
+                      <FiGrid className="w-4 h-4" />
+                      <span className="hidden sm:inline">Dashboard</span>
+                    </Link>
+                  )}
+                  
+                  {user?.role !== 'admin' && (
+                    <Link 
+                      href="/orders" 
+                      className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors elegant-link"
+                    >
+                      Orders
+                    </Link>
+                  )}
+                  
+                  <button 
+                    onClick={logout} 
+                    className="p-2 text-zinc-400 hover:text-red-500 transition-colors rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800" 
+                    title="Logout"
+                  >
+                    <FiLogOut className="w-4 h-4" />
+                  </button>
+                </div>
               ) : (
-                  <Link href="/login" className="flex items-center gap-2 text-sm font-medium text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-white transition-colors">
-                      <FiUser className="w-5 h-5" />
-                      <span>Sign In</span>
-                  </Link>
+                <Link 
+                  href="/login" 
+                  className="flex items-center gap-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+                >
+                  <FiUser className="w-4 h-4" />
+                  <span>Sign In</span>
+                </Link>
               )}
 
+              {/* Cart Button */}
               <button
                 onClick={() => setIsCartOpen(true)}
-                className="relative p-2 text-zinc-600 hover:text-black dark:text-zinc-400 dark:hover:text-white transition-colors"
+                className="relative p-2.5 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-all rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 title="Cart"
               >
-                <FiShoppingBag className="w-6 h-6" />
+                <FiShoppingBag className="w-5 h-5" />
                 {itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-black text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full dark:bg-white dark:text-black animate-in zoom-in">
-                    {itemCount}
+                  <span className="absolute -top-0.5 -right-0.5 bg-violet-600 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                    {itemCount > 9 ? '9+' : itemCount}
                   </span>
                 )}
               </button>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api';
-import { FiPlus, FiTrash2, FiPackage, FiX, FiAlertCircle, FiUpload, FiImage } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiPackage, FiX, FiAlertCircle, FiUpload, FiImage, FiDollarSign } from 'react-icons/fi';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -12,6 +12,11 @@ interface Variant {
   stock: number;
   sku: string;
   priceModifier: number;
+}
+
+interface TieredPrice {
+  quantity: number;
+  price: number;
 }
 
 interface Product {
@@ -25,6 +30,7 @@ interface Product {
   hasVariants: boolean;
   variants: Variant[];
   totalStock?: number;
+  tieredPricing?: TieredPrice[];
 }
 
 interface ProductsPanelProps {
@@ -51,7 +57,9 @@ export default function ProductsPanel({ onCountChange }: ProductsPanelProps) {
     stock: 0,
     image: '',
     hasVariants: false,
-    variants: [] as Variant[]
+    variants: [] as Variant[],
+    hasBulkPricing: false,
+    tieredPricing: [] as TieredPrice[]
   });
 
   useEffect(() => {
@@ -110,7 +118,8 @@ export default function ProductsPanel({ onCountChange }: ProductsPanelProps) {
       const payload = {
         ...productForm,
         stock: productForm.hasVariants ? 0 : productForm.stock,
-        variants: productForm.hasVariants ? productForm.variants : []
+        variants: productForm.hasVariants ? productForm.variants : [],
+        tieredPricing: productForm.hasBulkPricing ? productForm.tieredPricing : []
       };
       
       await api.post('/products', payload);
@@ -132,10 +141,40 @@ export default function ProductsPanel({ onCountChange }: ProductsPanelProps) {
       stock: 0,
       image: '',
       hasVariants: false,
-      variants: []
+      variants: [],
+      hasBulkPricing: false,
+      tieredPricing: []
     });
     setErrors({});
     setImagePreview(null);
+  };
+
+  // Tiered Pricing helpers
+  const addTier = () => {
+    const lastTier = productForm.tieredPricing[productForm.tieredPricing.length - 1];
+    const nextQty = lastTier ? lastTier.quantity + 10 : 10;
+    const nextPrice = productForm.price * 0.9; // Default 10% discount
+    
+    setProductForm({
+      ...productForm,
+      tieredPricing: [
+        ...productForm.tieredPricing,
+        { quantity: nextQty, price: parseFloat(nextPrice.toFixed(2)) }
+      ]
+    });
+  };
+
+  const removeTier = (index: number) => {
+    setProductForm({
+      ...productForm,
+      tieredPricing: productForm.tieredPricing.filter((_, i) => i !== index)
+    });
+  };
+
+  const updateTier = (index: number, field: keyof TieredPrice, value: number) => {
+    const updated = [...productForm.tieredPricing];
+    updated[index] = { ...updated[index], [field]: value };
+    setProductForm({ ...productForm, tieredPricing: updated });
   };
 
   // File to Base64 conversion
@@ -494,6 +533,94 @@ export default function ProductsPanel({ onCountChange }: ProductsPanelProps) {
                     className="w-full py-2 border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg text-sm text-zinc-500 hover:border-purple-500 hover:text-purple-500 transition-colors"
                   >
                     + Add Another Size
+                  </button>
+                </div>
+              )}
+
+              {/* Bulk Pricing Toggle */}
+              <div className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 rounded-lg border dark:border-zinc-700">
+                <input
+                  type="checkbox"
+                  id="hasBulkPricing"
+                  checked={productForm.hasBulkPricing}
+                  onChange={(e) => setProductForm({ 
+                    ...productForm, 
+                    hasBulkPricing: e.target.checked, 
+                    tieredPricing: e.target.checked ? [{ quantity: 10, price: productForm.price * 0.9 }] : [] 
+                  })}
+                  className="w-4 h-4 rounded border-zinc-300 text-purple-600 focus:ring-purple-500"
+                />
+                <label htmlFor="hasBulkPricing" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Enable bulk/quantity discounts
+                </label>
+              </div>
+
+              {/* Bulk Pricing Tiers */}
+              {productForm.hasBulkPricing && (
+                <div className="space-y-3 p-4 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FiDollarSign className="w-4 h-4 text-amber-600" />
+                      <label className="text-sm font-medium text-amber-800 dark:text-amber-400">
+                        Bulk Pricing Tiers
+                      </label>
+                    </div>
+                    <span className="text-xs text-amber-600 dark:text-amber-500">
+                      Customers get discounts when buying more
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {productForm.tieredPricing.map((tier, index) => (
+                      <div key={index} className="flex items-center gap-3 p-3 bg-white dark:bg-zinc-900 rounded-lg border dark:border-zinc-700">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-zinc-500 whitespace-nowrap">Buy</span>
+                          <input
+                            type="number"
+                            value={tier.quantity || ''}
+                            onChange={(e) => updateTier(index, 'quantity', parseInt(e.target.value) || 0)}
+                            min="2"
+                            className="w-20 p-2 rounded-lg border dark:border-zinc-600 dark:bg-zinc-800 text-sm text-center"
+                          />
+                          <span className="text-xs text-zinc-500 whitespace-nowrap">or more →</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-zinc-500">$</span>
+                          <input
+                            type="number"
+                            value={tier.price || ''}
+                            onChange={(e) => updateTier(index, 'price', parseFloat(e.target.value) || 0)}
+                            min="0"
+                            step="0.01"
+                            className="w-24 p-2 rounded-lg border dark:border-zinc-600 dark:bg-zinc-800 text-sm"
+                          />
+                          <span className="text-xs text-zinc-500">each</span>
+                        </div>
+                        
+                        {tier.price < productForm.price && (
+                          <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded">
+                            {Math.round((1 - tier.price / productForm.price) * 100)}% off
+                          </span>
+                        )}
+                        
+                        <button
+                          type="button"
+                          onClick={() => removeTier(index)}
+                          className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg ml-auto"
+                        >
+                          <FiX className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <button
+                    type="button"
+                    onClick={addTier}
+                    className="w-full py-2 border-2 border-dashed border-amber-300 dark:border-amber-700 rounded-lg text-sm text-amber-600 dark:text-amber-500 hover:border-amber-500 hover:text-amber-700 transition-colors"
+                  >
+                    + Add Another Tier
                   </button>
                 </div>
               )}

@@ -3,8 +3,9 @@
 import { useCart } from '@/context/CartContext';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { FiPlus, FiCheck } from 'react-icons/fi';
 
 interface Product {
   _id: string;
@@ -16,8 +17,6 @@ interface Product {
   image?: string;
   tieredPricing?: Array<{ quantity: number; price: number }>;
 }
-
-import { motion } from 'framer-motion';
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart();
@@ -32,73 +31,99 @@ export default function ProductCard({ product }: { product: Product }) {
       quantity: 1,
       image: product.image
     });
-    setTimeout(() => setIsAdding(false), 500);
+    setTimeout(() => setIsAdding(false), 800);
   };
 
   return (
-    <motion.div 
+    <motion.article 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -8, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-      transition={{ duration: 0.3 }}
-      className="group relative bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-100 dark:border-zinc-800 p-5 overflow-hidden"
+      className="group relative bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden card-hover"
     >
-      <div className="aspect-square relative overflow-hidden rounded-2xl bg-zinc-50 dark:bg-zinc-800 mb-5 group-hover:bg-zinc-100 transition-colors">
-        {product.image ? (
+      {/* Image Container */}
+      <Link href={`/products/${product._id}`} className="block">
+        <div className="aspect-[4/5] relative overflow-hidden bg-zinc-50 dark:bg-zinc-800">
+          {product.image ? (
             <Image 
               src={product.image} 
               alt={product.name}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-110"
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
             />
-        ) : ( 
-            <div className="absolute inset-0 flex items-center justify-center text-zinc-300 dark:text-zinc-600">
-                <span className="text-4xl font-bold opacity-20">{product.name.substring(0,2).toUpperCase()}</span>
+          ) : ( 
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-6xl font-cursive italic text-zinc-200 dark:text-zinc-700">
+                {product.name.substring(0,1)}
+              </span>
             </div>
-        )}
-        
-        {/* Quick Add Overlay */}
-        <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-           <button
-             onClick={handleAddToCart}
-             disabled={product.stock <= 0}
-             className="w-full bg-black/90 backdrop-blur text-white py-3 rounded-xl font-medium shadow-lg hover:bg-black dark:bg-white/90 dark:text-black"
-           >
-             {isAdding ? 'Added!' : 'Quick Add'}
-           </button>
+          )}
+          
+          {/* Category Tag */}
+          <div className="absolute top-3 left-3">
+            <span className="px-2.5 py-1 text-[10px] uppercase tracking-wider font-medium bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full text-zinc-600 dark:text-zinc-400">
+              {product.category}
+            </span>
+          </div>
+
+          {/* Quick Add Button */}
+          <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAddToCart(); }}
+              disabled={product.stock <= 0}
+              className={`w-full py-2.5 rounded-lg font-medium text-sm shadow-lg transition-all duration-300 ${
+                isAdding 
+                  ? 'bg-emerald-500 text-white' 
+                  : product.stock <= 0
+                  ? 'bg-zinc-300 text-zinc-500 cursor-not-allowed'
+                  : 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white hover:bg-zinc-900 hover:text-white dark:hover:bg-white dark:hover:text-zinc-900'
+              }`}
+            >
+              {isAdding ? 'Added!' : product.stock <= 0 ? 'Sold Out' : 'Add to Cart'}
+            </button>
+          </div>
         </div>
-      </div>
+      </Link>
       
-      <div className="flex justify-between items-start mb-2">
-        <div>
-          <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 leading-tight">{product.name}</h3>
-          <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mt-1">{product.category}</p>
+      {/* Content */}
+      <div className="p-4">
+        {/* Title and Price Row */}
+        <div className="flex justify-between items-start gap-2 mb-2">
+          <Link href={`/products/${product._id}`} className="group/link flex-1">
+            <h3 className="font-medium text-zinc-900 dark:text-white leading-snug group-hover/link:text-violet-600 dark:group-hover/link:text-violet-400 transition-colors line-clamp-2">
+              {product.name}
+            </h3>
+          </Link>
+          <span className="font-semibold text-zinc-900 dark:text-white whitespace-nowrap">
+            ${product.price}
+          </span>
         </div>
-        <div className="text-right">
-          <span className="block font-bold text-lg text-zinc-900 dark:text-zinc-100">${product.price}</span>
+
+        {/* Description */}
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-2 mb-3">
+          {product.description}
+        </p>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-3 border-t border-zinc-50 dark:border-zinc-800">
+          <div className="flex items-center gap-1.5">
+            <div className={`w-1.5 h-1.5 rounded-full ${
+              product.stock > 10 ? 'bg-emerald-500' : 
+              product.stock > 0 ? 'bg-amber-500' : 'bg-zinc-300'
+            }`} />
+            <span className={`text-xs ${
+              product.stock > 0 ? 'text-zinc-500' : 'text-zinc-400'
+            }`}>
+              {product.stock > 0 ? `${product.stock} left` : 'Sold out'}
+            </span>
+          </div>
+          
+          {product.tieredPricing && product.tieredPricing.length > 0 && (
+            <span className="text-xs text-violet-600 dark:text-violet-400 font-medium">
+              Bulk pricing
+            </span>
+          )}
         </div>
       </div>
-
-      <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4 line-clamp-2 min-h-[2.5rem]">
-        {product.description}
-      </p>
-
-      <div className="flex items-center justify-between pt-4 border-t border-zinc-50 dark:border-zinc-800">
-         <div className={`text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
-             product.stock > 10 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' :
-             product.stock > 0 ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' :
-             'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400'
-         }`}>
-             <div className={`w-1.5 h-1.5 rounded-full ${
-                 product.stock > 10 ? 'bg-emerald-500' : product.stock > 0 ? 'bg-amber-500' : 'bg-rose-500'
-             }`} />
-             {product.stock > 0 ? `${product.stock} in stock` : 'Out of Stock'}
-         </div>
-         
-         <div className="text-xs text-zinc-400">
-            {product.tieredPricing && product.tieredPricing.length > 0 && 'Bulk savings'}
-         </div>
-      </div>
-    </motion.div>
+    </motion.article>
   );
 }

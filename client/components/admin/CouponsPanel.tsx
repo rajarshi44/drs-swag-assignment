@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
-import { FiPlus, FiTrash2, FiTag, FiPercent, FiDollarSign, FiCalendar, FiAlertCircle } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiTag, FiPercent, FiDollarSign, FiCalendar, FiAlertCircle, FiPackage, FiGrid } from 'react-icons/fi';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,14 +17,26 @@ interface Coupon {
   isActive: boolean;
   minOrderAmount?: number;
   maxDiscountAmount?: number;
+  appliesToAllProducts?: boolean;
+  applicableProducts?: string[];
+  applicableCategories?: string[];
+}
+
+interface Product {
+  _id: string;
+  name: string;
+  category: string;
 }
 
 interface CouponsPanelProps {
   onCountChange?: (count: number) => void;
 }
 
+const CATEGORIES = ['Apparel', 'Electronics', 'Accessories', 'Office', 'Drinkware', 'Bags', 'Other'];
+
 export default function CouponsPanel({ onCountChange }: CouponsPanelProps) {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [showAddCoupon, setShowAddCoupon] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -37,11 +49,15 @@ export default function CouponsPanel({ onCountChange }: CouponsPanelProps) {
     usageLimit: 0,
     isActive: true,
     minOrderAmount: 0,
-    maxDiscountAmount: 0
+    maxDiscountAmount: 0,
+    appliesToAllProducts: true,
+    applicableProducts: [] as string[],
+    applicableCategories: [] as string[]
   });
 
   useEffect(() => {
     fetchCoupons();
+    fetchProducts();
   }, []);
 
   const fetchCoupons = async () => {
@@ -53,6 +69,15 @@ export default function CouponsPanel({ onCountChange }: CouponsPanelProps) {
       console.error('Failed to fetch coupons', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const { data } = await api.get('/products');
+      setProducts(data);
+    } catch (error) {
+      console.error('Failed to fetch products', error);
     }
   };
 
@@ -115,9 +140,30 @@ export default function CouponsPanel({ onCountChange }: CouponsPanelProps) {
       usageLimit: 0,
       isActive: true,
       minOrderAmount: 0,
-      maxDiscountAmount: 0
+      maxDiscountAmount: 0,
+      appliesToAllProducts: true,
+      applicableProducts: [],
+      applicableCategories: []
     });
     setErrors({});
+  };
+
+  const toggleProduct = (productId: string) => {
+    setCouponForm(prev => ({
+      ...prev,
+      applicableProducts: prev.applicableProducts.includes(productId)
+        ? prev.applicableProducts.filter(p => p !== productId)
+        : [...prev.applicableProducts, productId]
+    }));
+  };
+
+  const toggleCategory = (category: string) => {
+    setCouponForm(prev => ({
+      ...prev,
+      applicableCategories: prev.applicableCategories.includes(category)
+        ? prev.applicableCategories.filter(c => c !== category)
+        : [...prev.applicableCategories, category]
+    }));
   };
 
   const handleDeleteCoupon = async (id: string) => {
@@ -301,6 +347,96 @@ export default function CouponsPanel({ onCountChange }: CouponsPanelProps) {
                   />
                   <p className="text-zinc-500 text-xs mt-1">Leave at 0 for unlimited uses</p>
                 </div>
+              </div>
+
+              {/* Product Restrictions */}
+              <div className="space-y-3 p-4 bg-white dark:bg-zinc-900 rounded-lg border dark:border-zinc-700">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="appliesToAll"
+                    checked={couponForm.appliesToAllProducts}
+                    onChange={(e) => setCouponForm({ 
+                      ...couponForm, 
+                      appliesToAllProducts: e.target.checked,
+                      applicableProducts: [],
+                      applicableCategories: []
+                    })}
+                    className="w-4 h-4 rounded border-zinc-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  <label htmlFor="appliesToAll" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Applies to all products
+                  </label>
+                </div>
+
+                {!couponForm.appliesToAllProducts && (
+                  <div className="space-y-4 pt-3 border-t dark:border-zinc-700">
+                    {/* Category Selection */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <FiGrid className="w-4 h-4 text-zinc-500" />
+                        <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                          Select Categories
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {CATEGORIES.map(category => (
+                          <button
+                            key={category}
+                            type="button"
+                            onClick={() => toggleCategory(category)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                              couponForm.applicableCategories.includes(category)
+                                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 border border-purple-300'
+                                : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border border-transparent hover:border-zinc-300'
+                            }`}
+                          >
+                            {category}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Product Selection */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <FiPackage className="w-4 h-4 text-zinc-500" />
+                        <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                          Select Specific Products
+                        </span>
+                      </div>
+                      <div className="max-h-40 overflow-y-auto space-y-1.5 p-2 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
+                        {products.length === 0 ? (
+                          <p className="text-xs text-zinc-500 py-2 text-center">No products available</p>
+                        ) : (
+                          products.map(product => (
+                            <label key={product._id} className="flex items-center gap-2 p-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={couponForm.applicableProducts.includes(product._id)}
+                                onChange={() => toggleProduct(product._id)}
+                                className="w-4 h-4 rounded border-zinc-300 text-purple-600 focus:ring-purple-500"
+                              />
+                              <span className="text-sm text-zinc-700 dark:text-zinc-300">{product.name}</span>
+                              <span className="text-xs text-zinc-400">({product.category})</span>
+                            </label>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Selection Summary */}
+                    <div className="text-xs text-zinc-500">
+                      {couponForm.applicableCategories.length > 0 || couponForm.applicableProducts.length > 0 ? (
+                        <span>
+                          Applies to: {couponForm.applicableCategories.length} categories, {couponForm.applicableProducts.length} specific products
+                        </span>
+                      ) : (
+                        <span className="text-amber-600">⚠️ Select at least one category or product</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Submit Buttons */}

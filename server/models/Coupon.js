@@ -78,7 +78,22 @@ const couponSchema = new mongoose.Schema({
         type: Number,
         default: null,
         min: 0
-    }
+    },
+    // Product restrictions
+    appliesToAllProducts: {
+        type: Boolean,
+        default: true
+    },
+    // Array of product IDs this coupon applies to (only used if appliesToAllProducts is false)
+    applicableProducts: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product'
+    }],
+    // Optional: category restrictions
+    applicableCategories: [{
+        type: String,
+        enum: ['Apparel', 'Electronics', 'Accessories', 'Office', 'Drinkware', 'Bags', 'Other']
+    }]
 }, {
     timestamps: true
 });

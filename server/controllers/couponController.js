@@ -1,11 +1,12 @@
 const Coupon = require('../models/Coupon');
+const Product = require('../models/Product');
 
 // @desc    Validate a coupon
 // @route   POST /api/coupons/validate
 // @access  Public
 const validateCoupon = async (req, res) => {
     try {
-        const { code, cartTotal } = req.body;
+        const { code, cartTotal, cartItems } = req.body;
         
         const coupon = await Coupon.findOne({ code: code, isActive: true });
         
@@ -23,19 +24,72 @@ const validateCoupon = async (req, res) => {
             return res.status(400).json({ message: 'Coupon usage limit reached' });
         }
 
+        // Check minimum order amount
+        if (coupon.minOrderAmount && cartTotal < coupon.minOrderAmount) {
+            return res.status(400).json({ 
+                message: `Minimum order amount of $${coupon.minOrderAmount} required` 
+            });
+        }
+
+        // Calculate eligible amount based on product restrictions
+        let eligibleTotal = cartTotal;
+        let eligibleItems = [];
+        
+        if (!coupon.appliesToAllProducts && cartItems && cartItems.length > 0) {
+            // Need to check which items are eligible
+            eligibleTotal = 0;
+            
+            for (const item of cartItems) {
+                // Extract product ID (remove variant suffix if present)
+                const productId = item.product.split('-')[0];
+                
+                // Check if product is in the applicable products list
+                const isProductEligible = coupon.applicableProducts.some(
+                    p => p.toString() === productId
+                );
+                
+                // Check if product category is eligible (if categories are specified)
+                let isCategoryEligible = true;
+                if (coupon.applicableCategories && coupon.applicableCategories.length > 0) {
+                    const product = await Product.findById(productId);
+                    if (product) {
+                        isCategoryEligible = coupon.applicableCategories.includes(product.category);
+                    }
+                }
+                
+                if (isProductEligible || (coupon.applicableCategories?.length > 0 && isCategoryEligible)) {
+                    eligibleTotal += item.price * item.quantity;
+                    eligibleItems.push(item.product);
+                }
+            }
+            
+            if (eligibleTotal === 0) {
+                return res.status(400).json({ 
+                    message: 'This coupon is not valid for any items in your cart' 
+                });
+            }
+        }
+
         let discountAmount = 0;
         if (coupon.type === 'percent') {
-            discountAmount = (cartTotal * coupon.value) / 100;
+            discountAmount = (eligibleTotal * coupon.value) / 100;
+            
+            // Apply max discount cap if specified
+            if (coupon.maxDiscountAmount && discountAmount > coupon.maxDiscountAmount) {
+                discountAmount = coupon.maxDiscountAmount;
+            }
         } else {
             discountAmount = coupon.value;
         }
 
-        // Cap at total
-        if (discountAmount > cartTotal) discountAmount = cartTotal;
+        // Cap at eligible total
+        if (discountAmount > eligibleTotal) discountAmount = eligibleTotal;
 
         res.json({
             valid: true,
             discountAmount,
+            eligibleTotal,
+            eligibleItems,
             coupon
         });
 
