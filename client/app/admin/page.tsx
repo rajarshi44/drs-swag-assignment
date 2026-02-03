@@ -248,6 +248,10 @@ export default function AdminPage() {
                 isOpen={isOrderModalOpen} 
                 onClose={() => setIsOrderModalOpen(false)} 
                 order={selectedOrder} 
+                onStatusChange={(newStatus) => {
+                    handleStatusChange(selectedOrder._id, newStatus);
+                    setSelectedOrder({ ...selectedOrder, status: newStatus });
+                }}
               />
             </div>
           )}

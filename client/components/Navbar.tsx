@@ -40,14 +40,12 @@ export default function Navbar() {
                     </Link>
                   )}
                   
-                  {user?.role !== 'admin' && (
-                    <Link 
+                  <Link 
                       href="/orders" 
                       className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors elegant-link"
                     >
                       Orders
-                    </Link>
-                  )}
+                  </Link>
                   
                   <button 
                     onClick={logout} 

@@ -16,7 +16,7 @@ const chatWithAI = async (req, res) => {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-flash-2.5" });
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
         // 1. Gather Context
         const products = await Product.find({}, 'name stock price category');
@@ -91,7 +91,7 @@ const chatWithShopper = async (req, res) => {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
         // 1. Gather Context (Public Info Only)
         const products = await Product.find({}, 'name description price category stock features');
@@ -133,7 +133,7 @@ const chatWithShopper = async (req, res) => {
 
     } catch (error) {
         console.error('Public AI Error:', error);
-        res.status(500).json({ message: 'I need a coffee break! ☕️ (System Error)' });
+        res.status(500).json({ message: 'AI Service Error: ' + error.message });
     }
 };
 

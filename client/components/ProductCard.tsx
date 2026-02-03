@@ -16,11 +16,17 @@ interface Product {
   category: string;
   image?: string;
   tieredPricing?: Array<{ quantity: number; price: number }>;
+  hasVariants?: boolean;
+  totalStock?: number;
 }
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart();
   const [isAdding, setIsAdding] = useState(false);
+  
+  // Use totalStock if available (populated by backend virtual), otherwise fallback to stock
+  const currentStock = product.totalStock ?? product.stock;
+  const isSoldOut = currentStock <= 0;
 
   const handleAddToCart = () => {
     setIsAdding(true);
@@ -68,17 +74,24 @@ export default function ProductCard({ product }: { product: Product }) {
           {/* Quick Add Button */}
           <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAddToCart(); }}
-              disabled={product.stock <= 0}
+              onClick={(e) => { 
+                // If product has variants, don't quick add - let it bubble to the Link to open details
+                if (product.hasVariants) return;
+                
+                e.preventDefault(); 
+                e.stopPropagation(); 
+                handleAddToCart(); 
+              }}
+              disabled={isSoldOut}
               className={`w-full py-2.5 rounded-lg font-medium text-sm shadow-lg transition-all duration-300 ${
                 isAdding 
                   ? 'bg-emerald-500 text-white' 
-                  : product.stock <= 0
+                  : isSoldOut
                   ? 'bg-zinc-300 text-zinc-500 cursor-not-allowed'
                   : 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white hover:bg-zinc-900 hover:text-white dark:hover:bg-white dark:hover:text-zinc-900'
               }`}
             >
-              {isAdding ? 'Added!' : product.stock <= 0 ? 'Sold Out' : 'Add to Cart'}
+              {isAdding ? 'Added!' : isSoldOut ? 'Sold Out' : product.hasVariants ? 'View Options' : 'Add to Cart'}
             </button>
           </div>
         </div>
@@ -107,13 +120,13 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="flex items-center justify-between pt-3 border-t border-zinc-50 dark:border-zinc-800">
           <div className="flex items-center gap-1.5">
             <div className={`w-1.5 h-1.5 rounded-full ${
-              product.stock > 10 ? 'bg-emerald-500' : 
-              product.stock > 0 ? 'bg-amber-500' : 'bg-zinc-300'
+              currentStock > 10 ? 'bg-emerald-500' : 
+              currentStock > 0 ? 'bg-amber-500' : 'bg-zinc-300'
             }`} />
             <span className={`text-xs ${
-              product.stock > 0 ? 'text-zinc-500' : 'text-zinc-400'
+              currentStock > 0 ? 'text-zinc-500' : 'text-zinc-400'
             }`}>
-              {product.stock > 0 ? `${product.stock} left` : 'Sold out'}
+              {currentStock > 0 ? `${currentStock} left` : 'Sold out'}
             </span>
           </div>
           

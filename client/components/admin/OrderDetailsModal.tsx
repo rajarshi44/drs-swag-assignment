@@ -5,9 +5,10 @@ interface OrderDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   order: any;
+  onStatusChange: (newStatus: string) => void;
 }
 
-export default function OrderDetailsModal({ isOpen, onClose, order }: OrderDetailsModalProps) {
+export default function OrderDetailsModal({ isOpen, onClose, order, onStatusChange }: OrderDetailsModalProps) {
   if (!order) return null;
 
   return (
@@ -78,7 +79,10 @@ export default function OrderDetailsModal({ isOpen, onClose, order }: OrderDetai
                         </div>
                     </div>
 
-                    <div className={`px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide
+                    <select
+                        value={order.status === 'completed' ? 'fulfilled' : order.status}
+                        onChange={(e) => onStatusChange(e.target.value)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide border-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500 cursor-pointer appearance-none outline-none
                         ${order.status === 'fulfilled' || order.status === 'completed'
                             ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                             : order.status === 'cancelled'
@@ -86,8 +90,10 @@ export default function OrderDetailsModal({ isOpen, onClose, order }: OrderDetai
                             : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
                         }`}
                     >
-                        {order.status || (order.isDelivered ? 'Delivered' : 'Pending')}
-                    </div>
+                        <option value="pending">Pending</option>
+                        <option value="fulfilled">Fulfilled</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">

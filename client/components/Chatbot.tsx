@@ -41,6 +41,7 @@ export default function Chatbot() {
       const { data } = await api.post('/ai/public-chat', { message: userMsg });
       setMessages(prev => [...prev, { role: 'assistant', content: data.answer }]);
     } catch (error) {
+      console.error('Chatbot Error:', error);
       setMessages(prev => [...prev, { role: 'assistant', content: 'Oops! My circuits differ. Please try again later. 🤖' }]);
     } finally {
       setIsLoading(false);
