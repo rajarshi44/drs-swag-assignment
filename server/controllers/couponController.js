@@ -49,10 +49,32 @@ const validateCoupon = async (req, res) => {
 // @access  Admin
 const createCoupon = async (req, res) => {
     try {
+        const { type, value, code, expirationDate } = req.body;
+        
+        // Server-side validation
+        if (!code || code.trim().length < 3) {
+            return res.status(400).json({ message: 'Coupon code must be at least 3 characters' });
+        }
+        
+        if (type === 'percent' && (value < 0 || value > 100)) {
+            return res.status(400).json({ message: 'Percentage discount must be between 0 and 100' });
+        }
+        
+        if (type === 'fixed' && value < 0) {
+            return res.status(400).json({ message: 'Fixed discount cannot be negative' });
+        }
+        
+        if (new Date(expirationDate) <= new Date()) {
+            return res.status(400).json({ message: 'Expiration date must be in the future' });
+        }
+        
         const coupon = new Coupon(req.body);
         const createdCoupon = await coupon.save();
         res.status(201).json(createdCoupon);
     } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'A coupon with this code already exists' });
+        }
         res.status(400).json({ message: error.message });
     }
 };

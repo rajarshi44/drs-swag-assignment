@@ -10,7 +10,11 @@ type Message = {
   content: string;
 };
 
-export default function AdminChat() {
+interface AdminChatProps {
+  fullHeight?: boolean;
+}
+
+export default function AdminChat({ fullHeight = false }: AdminChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: 'Hello Admin! I can help you analyze stock, revenue, or verify coupons. Ask me anything!' }
   ]);
@@ -45,7 +49,7 @@ export default function AdminChat() {
   };
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col h-[500px]">
+    <div className={`bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col ${fullHeight ? 'h-full' : 'h-[500px]'}`}>
       <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex items-center gap-2">
         <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
            <FiCpu className="text-purple-600 dark:text-purple-400" />
