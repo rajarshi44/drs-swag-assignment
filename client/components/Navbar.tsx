@@ -22,9 +22,9 @@ export default function Navbar() {
             {/* Logo */}
             <Link 
               href="/shop" 
-              className="text-2xl font-cursive italic text-zinc-900 dark:text-white hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+              className="text-2xl font-cursive italic text-zinc-900 dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
             >
-              SwagStore
+              DRS Swag
             </Link>
 
             {/* Navigation Links */}
@@ -80,7 +80,7 @@ export default function Navbar() {
               >
                 <FiShoppingBag className="w-5 h-5" />
                 {itemCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-violet-600 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                  <span className="absolute -top-0.5 -right-0.5 bg-cyan-600 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
                     {itemCount > 9 ? '9+' : itemCount}
                   </span>
                 )}

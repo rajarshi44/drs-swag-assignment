@@ -78,4 +78,63 @@ const chatWithAI = async (req, res) => {
     }
 };
 
-module.exports = { chatWithAI };
+// @desc    Chat with AI as a shopper (Sales Assistant)
+// @route   POST /api/ai/public-chat
+// @access  Public
+const chatWithShopper = async (req, res) => {
+    try {
+        const { message } = req.body;
+        const apiKey = process.env.GEMINI_API_KEY;
+
+        if (!apiKey) {
+            return res.status(500).json({ message: 'AI Service Unavailable' });
+        }
+
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+        // 1. Gather Context (Public Info Only)
+        const products = await Product.find({}, 'name description price category stock features');
+        const activeCoupons = await Coupon.find({ 
+            isActive: true, 
+            expirationDate: { $gt: new Date() },
+            type: { $ne: 'fixed' } // Maybe hide fixed high-value coupons if they are secret? or just show percent ones.
+        }, 'code value type');
+
+        const context = {
+            products: JSON.stringify(products),
+            coupons: JSON.stringify(activeCoupons)
+        };
+
+        const prompt = `
+        You are "DevRelSquad Bot", a helpful and enthusiastic sales assistant for the DevRelSquad Swag store.
+        Your goal is to help developers find cool swag and answer questions about products.
+        
+        STORE DATA:
+        - Products: ${context.products}
+        - Active Coupons: ${context.coupons}
+
+        GUIDELINES:
+        - Be friendly, tech-savvy, and use emojis ⚡️🚀.
+        - Recommend products based on the user's query.
+        - If they ask for a discount, check the Active Coupons list and give them a code if available.
+        - DO NOT mention backend IDs or internal data.
+        - If you don't know something, suggest they browse the shop.
+        - Keep answers short (max 3 sentences).
+
+        User Question: "${message}"
+        `;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+
+        res.json({ answer: text });
+
+    } catch (error) {
+        console.error('Public AI Error:', error);
+        res.status(500).json({ message: 'I need a coffee break! ☕️ (System Error)' });
+    }
+};
+
+module.exports = { chatWithAI, chatWithShopper };

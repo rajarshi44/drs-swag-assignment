@@ -67,7 +67,13 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       if (items.length === 0) return;
 
       const orderData = {
-         items: items.map(i => ({ product: i.product, quantity: i.quantity })),
+         items: items.map(i => ({ 
+           product: i.product.split('-')[0], // Ensure valid ObjectId by stripping variant suffix
+           quantity: Number(i.quantity),
+           priceAtPurchase: Number(i.price) || 0
+         })),
+         originalAmount: Number(cartTotal) || 0,
+         finalAmount: Number(finalTotal) || 0,
          customerInfo: {
              name: formData.name || "Guest",
              email: formData.email || "guest@example.com",
@@ -79,6 +85,8 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
          userId: user?._id
       };
       
+      console.log('Sending Order Data:', JSON.stringify(orderData, null, 2)); // Debug log
+
       await api.post('/orders', orderData);
       
       clearCart();
@@ -231,7 +239,15 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 </div>
 
                 <button
-                    onClick={() => setStep('details')}
+                    onClick={() => {
+                        if (!user) {
+                             toast.error('Please login to checkout');
+                             onClose();
+                             router.push('/login');
+                             return;
+                        }
+                        setStep('details');
+                    }}
                     disabled={items.length === 0}
                     className="w-full rounded-full bg-black py-3 font-semibold text-white shadow-lg transition-all hover:bg-zinc-800 dark:bg-white dark:text-black"
                 >
@@ -322,7 +338,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                      <button
                         onClick={handleCheckout}
                         disabled={isProcessing}
-                        className="w-full rounded-full bg-gradient-to-r from-purple-600 to-blue-600 py-3 font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-[1.02] disabled:opacity-50"
+                        className="w-full rounded-full bg-gradient-to-r from-cyan-600 to-teal-600 py-3 font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:scale-[1.02] disabled:opacity-50"
                      >
                         {isProcessing ? 'Processing Payment...' : `Pay $${finalTotal.toFixed(2)}`}
                      </button>

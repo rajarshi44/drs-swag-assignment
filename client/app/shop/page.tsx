@@ -64,8 +64,8 @@ export default function ShopPage() {
             className="text-4xl md:text-6xl lg:text-7xl font-normal tracking-tight text-zinc-900 dark:text-white"
           >
             Swag that{' '}
-            <span className="font-cursive italic text-violet-600 dark:text-violet-400">
-              Speaks
+            <span className="font-cursive italic text-cyan-600 dark:text-cyan-400">
+              Connects
             </span>
           </motion.h1>
           
@@ -75,8 +75,8 @@ export default function ShopPage() {
             transition={{ delay: 0.2 }}
             className="text-lg text-zinc-600 dark:text-zinc-400 max-w-xl mx-auto leading-relaxed"
           >
-            Elevate your brand with premium merchandise. 
-            Quality that your team will actually want to wear.
+            Empower your community with premium merchandise. 
+            Quality gear that developers will actually want to wear.
           </motion.p>
         </div>
 

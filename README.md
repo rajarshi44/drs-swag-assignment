@@ -38,7 +38,7 @@ A full-stack e-commerce solution for purchasing company swag, built with the "SD
 
 ## 🛠 Tech Stack
 
-*   **Frontend**: Next.js 14, React, Tailwind CSS, Framer Motion, Axios.
+*   **Frontend**: Next.js, React, Tailwind CSS, Framer Motion, Axios.
 *   **Backend**: Node.js, Express, Mongoose (MongoDB).
 *   **AI**: Google Gemini Pro.
 *   **Auth**: JWT, Bcrypt.

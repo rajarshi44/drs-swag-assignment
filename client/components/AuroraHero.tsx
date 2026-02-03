@@ -12,8 +12,8 @@ import {
 } from "framer-motion";
 import Link from "next/link";
 
-// Premium violet/purple gradient theme matching the SwagStore brand
-const COLORS_TOP = ["#8b5cf6", "#7c3aed", "#a78bfa", "#6d28d9"];
+// DevRelSquad Theming - Teal/Cyan/Emerald
+const COLORS_TOP = ["#06b6d4", "#0891b2", "#10b981", "#0ea5e9"];
 
 // Floating particles component
 const FloatingParticle = ({ delay, duration, size, left, top }: {
@@ -24,7 +24,7 @@ const FloatingParticle = ({ delay, duration, size, left, top }: {
   top: string;
 }) => (
   <motion.div
-    className="absolute rounded-full bg-violet-400/20 blur-sm"
+    className="absolute rounded-full bg-cyan-400/20 blur-sm"
     style={{ width: size, height: size, left, top }}
     animate={{
       y: [0, -30, 0],
@@ -97,10 +97,10 @@ export const AuroraHero = () => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
-          className="mb-6 inline-flex items-center gap-2 rounded-full bg-violet-500/10 border border-violet-500/20 px-4 py-2 text-sm backdrop-blur-sm"
+          className="mb-6 inline-flex items-center gap-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 px-4 py-2 text-sm backdrop-blur-sm"
         >
-          <FiZap className="text-violet-400" />
-          <span className="text-violet-300">Premium Corporate Merchandise</span>
+          <FiZap className="text-cyan-400" />
+          <span className="text-cyan-300">Powered by DevRelSquad</span>
         </motion.span>
 
         {/* Main Heading */}
@@ -111,11 +111,11 @@ export const AuroraHero = () => {
           className="max-w-4xl bg-gradient-to-br from-white via-gray-200 to-gray-400 bg-clip-text text-center text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-medium leading-tight text-transparent"
         >
           Swag that{' '}
-          <span className="font-cursive italic bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text">
-            Elevates
+          <span className="font-cursive italic bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text">
+            Builds
           </span>
           <br />
-          Your Brand
+          Community
         </motion.h1>
 
         {/* Subtitle */}
@@ -125,8 +125,8 @@ export const AuroraHero = () => {
           transition={{ delay: 0.4 }}
           className="my-8 max-w-2xl text-center text-lg md:text-xl leading-relaxed text-gray-400"
         >
-          Premium quality merchandise that your team will actually want to wear. 
-          Transform your brand identity with products crafted for excellence.
+          Premium gear for your meetups, hackathons, and dev heroes.
+          Turn your community members into lifelong advocates.
         </motion.p>
 
         {/* CTA Buttons */}
@@ -151,10 +151,10 @@ export const AuroraHero = () => {
           >
             <Link
               href="#shop"
-              className="group relative flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 px-8 py-4 text-white font-medium transition-all hover:shadow-lg hover:shadow-violet-500/25"
+              className="group relative flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-teal-600 px-8 py-4 text-white font-medium transition-all hover:shadow-lg hover:shadow-cyan-500/25"
             >
               <FiShoppingBag className="w-5 h-5" />
-              Explore Collection
+              Explore Gear
               <FiArrowRight className="transition-transform group-hover:translate-x-1" />
             </Link>
           </motion.div>

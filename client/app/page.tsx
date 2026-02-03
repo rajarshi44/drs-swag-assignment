@@ -3,7 +3,7 @@
 import { Stars } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import React, { useEffect, Suspense } from "react";
-import { FiArrowRight, FiShoppingBag, FiStar, FiZap, FiAward, FiPackage, FiTruck, FiShield, FiCheck, FiUsers, FiHeart } from "react-icons/fi";
+import { FiArrowRight, FiShoppingBag, FiStar, FiZap, FiAward, FiPackage, FiTruck, FiShield, FiCheck, FiUsers, FiHeart, FiCode, FiGlobe } from "react-icons/fi";
 import {
   useMotionTemplate,
   useMotionValue,
@@ -12,8 +12,8 @@ import {
 } from "framer-motion";
 import Link from "next/link";
 
-// Premium violet/purple gradient theme matching the SwagStore brand
-const COLORS_TOP = ["#8b5cf6", "#7c3aed", "#a78bfa", "#6d28d9"];
+// DevRelSquad Theming - Teal/Cyan/Emerald
+const COLORS_TOP = ["#06b6d4", "#0891b2", "#10b981", "#0ea5e9"];
 
 // Floating particles component
 const FloatingParticle = ({ delay, duration, size, left, top }: {
@@ -24,7 +24,7 @@ const FloatingParticle = ({ delay, duration, size, left, top }: {
   top: string;
 }) => (
   <motion.div
-    className="absolute rounded-full bg-violet-400/20 blur-sm"
+    className="absolute rounded-full bg-cyan-400/20 blur-sm"
     style={{ width: size, height: size, left, top }}
     animate={{
       y: [0, -30, 0],
@@ -73,9 +73,9 @@ const FeatureCard = ({ icon, title, description, delay }: {
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
     transition={{ delay }}
-    className="group p-8 rounded-3xl bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 hover:border-violet-300 dark:hover:border-violet-600 transition-all duration-500 hover:shadow-2xl hover:shadow-violet-500/10 hover:-translate-y-2"
+    className="group p-8 rounded-3xl bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 hover:border-cyan-300 dark:hover:border-cyan-600 transition-all duration-500 hover:shadow-2xl hover:shadow-cyan-500/10 hover:-translate-y-2"
   >
-    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-100 to-purple-100 dark:from-violet-900/30 dark:to-purple-900/30 text-violet-600 dark:text-violet-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-100 to-teal-100 dark:from-cyan-900/30 dark:to-teal-900/30 text-cyan-600 dark:text-cyan-400 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
       {icon}
     </div>
     <h3 className="text-xl font-semibold text-zinc-900 dark:text-white mb-3">
@@ -104,14 +104,14 @@ const TestimonialCard = ({ quote, author, role, company, delay }: {
   >
     <div className="flex gap-1 mb-4">
       {[...Array(5)].map((_, i) => (
-        <FiStar key={i} className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+        <FiStar key={i} className="w-4 h-4 text-emerald-500 fill-emerald-500" />
       ))}
     </div>
     <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed mb-6 italic">
       "{quote}"
     </p>
     <div className="flex items-center gap-4">
-      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center text-white font-bold">
+      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center text-white font-bold">
         {author.split(' ').map(n => n[0]).join('')}
       </div>
       <div>
@@ -138,30 +138,30 @@ const PricingTier = ({ name, price, description, features, highlighted, delay }:
     transition={{ delay }}
     className={`relative p-8 rounded-3xl border ${
       highlighted 
-        ? 'bg-gradient-to-br from-violet-600 to-purple-700 border-violet-500 text-white shadow-2xl shadow-violet-500/20 scale-105' 
+        ? 'bg-gradient-to-br from-cyan-600 to-teal-700 border-cyan-500 text-white shadow-2xl shadow-cyan-500/20 scale-105' 
         : 'bg-white dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700'
     }`}
   >
     {highlighted && (
-      <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full text-xs font-bold text-zinc-900">
-        MOST POPULAR
+      <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-orange-400 to-amber-400 rounded-full text-xs font-bold text-zinc-900">
+        COMMUNITY FAVORITE
       </div>
     )}
     <h3 className={`text-xl font-semibold mb-2 ${highlighted ? 'text-white' : 'text-zinc-900 dark:text-white'}`}>
       {name}
     </h3>
-    <p className={`text-sm mb-6 ${highlighted ? 'text-violet-200' : 'text-zinc-500'}`}>
+    <p className={`text-sm mb-6 ${highlighted ? 'text-cyan-100' : 'text-zinc-500'}`}>
       {description}
     </p>
     <div className="mb-6">
       <span className={`text-4xl font-bold ${highlighted ? 'text-white' : 'text-zinc-900 dark:text-white'}`}>{price}</span>
-      {price !== 'Custom' && <span className={`text-sm ${highlighted ? 'text-violet-200' : 'text-zinc-500'}`}>/order</span>}
+      {price !== 'Custom' && <span className={`text-sm ${highlighted ? 'text-cyan-100' : 'text-zinc-500'}`}>/pack</span>}
     </div>
     <ul className="space-y-3 mb-8">
       {features.map((feature, i) => (
         <li key={i} className="flex items-center gap-3">
-          <FiCheck className={`w-4 h-4 ${highlighted ? 'text-violet-200' : 'text-violet-500'}`} />
-          <span className={`text-sm ${highlighted ? 'text-violet-100' : 'text-zinc-600 dark:text-zinc-400'}`}>{feature}</span>
+          <FiCheck className={`w-4 h-4 ${highlighted ? 'text-cyan-200' : 'text-emerald-500'}`} />
+          <span className={`text-sm ${highlighted ? 'text-cyan-50' : 'text-zinc-600 dark:text-zinc-400'}`}>{feature}</span>
         </li>
       ))}
     </ul>
@@ -169,11 +169,11 @@ const PricingTier = ({ name, price, description, features, highlighted, delay }:
       href="/shop"
       className={`block w-full py-3 rounded-xl font-medium text-center transition-all ${
         highlighted
-          ? 'bg-white text-violet-600 hover:bg-violet-50'
+          ? 'bg-white text-cyan-700 hover:bg-cyan-50'
           : 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:opacity-90'
       }`}
     >
-      Get Started
+      Start Building
     </Link>
   </motion.div>
 );
@@ -196,68 +196,68 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: <FiAward className="w-6 h-6" />,
-      title: "Premium Quality",
-      description: "Only the finest materials and printing techniques for merchandise that truly lasts and impresses."
+      icon: <FiCode className="w-6 h-6" />,
+      title: "Developer First",
+      description: "Designed by devs, for devs. We understand what the community actually wants to wear."
     },
     {
-      icon: <FiPackage className="w-6 h-6" />,
-      title: "Custom Branding",
-      description: "Your logo, your colors, your unique identity perfectly represented on every item."
+      icon: <FiGlobe className="w-6 h-6" />,
+      title: "Global Shipping",
+      description: "Send swag to your remote team members and community contributors anywhere in the world."
     },
     {
-      icon: <FiTruck className="w-6 h-6" />,
-      title: "Lightning Fast Delivery",
-      description: "From order to doorstep in record time. Keep your team equipped without the wait."
+      icon: <FiZap className="w-6 h-6" />,
+      title: "Hackathon Ready",
+      description: "Bulk orders for your next hackathon or meetup delivered with lightning speed."
     },
     {
-      icon: <FiShield className="w-6 h-6" />,
-      title: "100% Satisfaction",
-      description: "Not completely happy? We'll make it right. That's our promise, always."
+      icon: <FiHeart className="w-6 h-6" />,
+      title: "Community Loved",
+      description: "High-quality materials that turn your community members into proud brand advocates."
     }
   ];
 
   const testimonials = [
     {
-      quote: "The quality exceeded our expectations. Our team actually fights over who gets the new swag drops now!",
+      quote: "The hoodie quality is insane. Our contributors actually compete to earn them now!",
+      author: "Alex Rivera",
+      role: "DevRel Lead",
+      company: "CloudScale"
+    },
+    {
+      quote: "Finally, swag that doesn't feel like cheap corporate merch. DRS Swag gets developer culture.",
       author: "Sarah Chen",
-      role: "Head of Culture",
-      company: "TechCorp"
+      role: "Community Manager",
+      company: "OpenSource Hub"
     },
     {
-      quote: "Fast turnaround, premium quality, and the AI assistant helped us design the perfect collection.",
-      author: "Marcus Johnson",
-      role: "Brand Manager",
-      company: "StartupXYZ"
-    },
-    {
-      quote: "We've tried many vendors. SwagStore is the only one that consistently delivers excellence.",
-      author: "Emily Rodriguez",
-      role: "Operations Lead",
-      company: "ScaleUp Inc"
+      quote: "We ordered 500 tees for our hackathon. Arrived early, looked perfect. Lifesavers.",
+      author: "Mike Ross",
+      role: "Event Organizer",
+      company: "CodeFest"
     }
   ];
 
   const pricingTiers = [
     {
-      name: "Starter",
-      price: "$49",
-      description: "Perfect for small teams",
-      features: ["Up to 25 items", "3 product types", "Standard shipping", "Email support"],
+      name: "Meetup",
+      price: "$199",
+      description: "For local user groups",
+      features: ["Up to 30 items", "Stickers & Tees", "Standard shipping", "Community support"],
       highlighted: false
     },
     {
-      name: "Business",
-      price: "$149",
-      description: "For growing companies",
-      features: ["Up to 100 items", "All product types", "Priority shipping", "24/7 support", "Custom packaging"],
+      name: "Hackathon",
+      price: "$899",
+      description: "For major events",
+      features: ["Up to 150 items", "Full swag kits", "Priority shipping", "Event coordinator", "Custom branding"],
       highlighted: true
     },
     {
       name: "Enterprise",
       price: "Custom",
-      description: "For large organizations",
-      features: ["Unlimited items", "Dedicated account manager", "Same-day shipping", "API access", "White-label options"],
+      description: "For global programs",
+      features: ["Unlimited volume", "Global distribution", "Warehousing", "API integration", "Dedicated success manager"],
       highlighted: false
     }
   ];
@@ -268,12 +268,12 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            <Link href="/" className="text-2xl font-cursive italic text-white hover:text-violet-300 transition-colors">
-              SwagStore
+            <Link href="/" className="text-2xl font-cursive italic text-white hover:text-cyan-300 transition-colors">
+              DRS Swag
             </Link>
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-sm text-gray-300 hover:text-white transition-colors">Features</a>
-              <a href="#testimonials" className="text-sm text-gray-300 hover:text-white transition-colors">Testimonials</a>
+              <a href="#testimonials" className="text-sm text-gray-300 hover:text-white transition-colors">Community</a>
               <a href="#pricing" className="text-sm text-gray-300 hover:text-white transition-colors">Pricing</a>
               <Link href="/login" className="text-sm text-gray-300 hover:text-white transition-colors">Sign In</Link>
               <Link 
@@ -310,10 +310,10 @@ export default function LandingPage() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full bg-violet-500/10 border border-violet-500/20 px-4 py-2 text-sm backdrop-blur-sm"
+            className="mb-6 inline-flex items-center gap-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 px-4 py-2 text-sm backdrop-blur-sm"
           >
-            <FiZap className="text-violet-400" />
-            <span className="text-violet-300">Premium Corporate Merchandise</span>
+            <FiZap className="text-cyan-400" />
+            <span className="text-cyan-300">Powered by DevRelSquad</span>
           </motion.span>
 
           {/* Main Heading */}
@@ -324,11 +324,11 @@ export default function LandingPage() {
             className="max-w-4xl bg-gradient-to-br from-white via-gray-200 to-gray-400 bg-clip-text text-center text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-medium leading-tight text-transparent"
           >
             Swag that{' '}
-            <span className="font-cursive italic bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text">
-              Elevates
+            <span className="font-cursive italic bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text">
+              Builds
             </span>
             <br />
-            Your Brand
+            Community
           </motion.h1>
 
           {/* Subtitle */}
@@ -338,8 +338,8 @@ export default function LandingPage() {
             transition={{ delay: 0.4 }}
             className="my-8 max-w-2xl text-center text-lg md:text-xl leading-relaxed text-gray-400"
           >
-            Premium quality merchandise that your team will actually want to wear. 
-            Transform your brand identity with products crafted for excellence.
+            Premium gear for your meetups, hackathons, and dev heroes.
+            Turn your community members into lifelong advocates.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -357,10 +357,10 @@ export default function LandingPage() {
             >
               <Link
                 href="/shop"
-                className="group relative flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 px-8 py-4 text-white font-medium transition-all hover:shadow-lg hover:shadow-violet-500/25"
+                className="group relative flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-600 to-teal-600 px-8 py-4 text-white font-medium transition-all hover:shadow-lg hover:shadow-cyan-500/25"
               >
                 <FiShoppingBag className="w-5 h-5" />
-                Explore Collection
+                Explore Gear
                 <FiArrowRight className="transition-transform group-hover:translate-x-1" />
               </Link>
             </motion.div>
@@ -369,7 +369,7 @@ export default function LandingPage() {
               href="/login"
               className="group flex items-center gap-2 px-6 py-3 text-gray-400 hover:text-white transition-colors"
             >
-              Sign In
+              Join the Squad
               <FiArrowRight className="transition-transform group-hover:translate-x-1 group-hover:-rotate-45" />
             </Link>
           </motion.div>
@@ -382,21 +382,21 @@ export default function LandingPage() {
             className="mt-20 grid grid-cols-3 gap-8 md:gap-16"
           >
             <StatItem
-              icon={<FiShoppingBag className="w-5 h-5 text-violet-400" />}
+              icon={<FiUsers className="w-5 h-5 text-cyan-400" />}
               value="500+"
-              label="Products"
+              label="Communities"
               delay={0.8}
             />
             <StatItem
-              icon={<FiStar className="w-5 h-5 text-violet-400" />}
+              icon={<FiStar className="w-5 h-5 text-cyan-400" />}
               value="4.9"
-              label="Rating"
+              label="Dev Rating"
               delay={0.9}
             />
             <StatItem
-              icon={<FiUsers className="w-5 h-5 text-violet-400" />}
-              value="10K+"
-              label="Happy Teams"
+              icon={<FiPackage className="w-5 h-5 text-cyan-400" />}
+              value="50K+"
+              label="Items Shipped"
               delay={1.0}
             />
           </motion.div>
@@ -410,10 +410,10 @@ export default function LandingPage() {
               opacity: { delay: 1.2 },
               y: { duration: 2, repeat: Infinity, ease: "easeInOut" }
             }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-500 hover:text-violet-400 transition-colors cursor-pointer"
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-500 hover:text-cyan-400 transition-colors cursor-pointer"
           >
-            <span className="text-xs uppercase tracking-widest">Scroll to explore</span>
-            <div className="w-px h-8 bg-gradient-to-b from-violet-500/50 to-transparent" />
+            <span className="text-xs uppercase tracking-widest"></span>
+            <div className="w-px h-8 bg-gradient-to-b from-cyan-500/50 to-transparent" />
           </motion.a>
         </div>
 
@@ -442,17 +442,17 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-20"
           >
-            <span className="text-sm uppercase tracking-[0.3em] text-violet-600 dark:text-violet-400 font-medium">
-              Why Choose SwagStore
+            <span className="text-sm uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-400 font-medium">
+              Why DevRelSquad
             </span>
             <h2 className="mt-4 text-4xl md:text-5xl lg:text-6xl font-medium text-zinc-900 dark:text-white">
               Built for{' '}
-              <span className="font-cursive italic text-violet-600 dark:text-violet-400">
-                Excellence
+              <span className="font-cursive italic text-cyan-600 dark:text-cyan-400">
+                Developers
               </span>
             </h2>
             <p className="mt-6 text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-              We've reimagined corporate merchandise from the ground up. Every product, every process, designed for maximum impact.
+              We know developer relations. Every product is selected to resonate with technical audiences and stand the test of time.
             </p>
           </motion.div>
 
@@ -481,7 +481,7 @@ export default function LandingPage() {
               className="text-center"
             >
               <p className="text-4xl font-bold text-zinc-900 dark:text-white">500+</p>
-              <p className="text-sm text-zinc-500 mt-1">Premium Products</p>
+              <p className="text-sm text-zinc-500 mt-1">Tech Communities</p>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -490,8 +490,8 @@ export default function LandingPage() {
               transition={{ delay: 0.1 }}
               className="text-center"
             >
-              <p className="text-4xl font-bold text-zinc-900 dark:text-white">10,000+</p>
-              <p className="text-sm text-zinc-500 mt-1">Happy Teams</p>
+              <p className="text-4xl font-bold text-zinc-900 dark:text-white">10K+</p>
+              <p className="text-sm text-zinc-500 mt-1">Happy Developers</p>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -501,7 +501,7 @@ export default function LandingPage() {
               className="text-center"
             >
               <p className="text-4xl font-bold text-zinc-900 dark:text-white">24hr</p>
-              <p className="text-sm text-zinc-500 mt-1">Avg. Delivery</p>
+              <p className="text-sm text-zinc-500 mt-1">Avg. Dispatch</p>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -526,15 +526,15 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-20"
           >
-            <span className="text-sm uppercase tracking-[0.3em] text-violet-600 dark:text-violet-400 font-medium">
-              Testimonials
+            <span className="text-sm uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-400 font-medium">
+              Community Voices
             </span>
             <h2 className="mt-4 text-4xl md:text-5xl lg:text-6xl font-medium text-zinc-900 dark:text-white">
               Loved by{' '}
-              <span className="font-cursive italic text-violet-600 dark:text-violet-400">
-                Teams
+              <span className="font-cursive italic text-cyan-600 dark:text-cyan-400">
+                DevRel
               </span>{' '}
-              Everywhere
+              Pros
             </h2>
           </motion.div>
 
@@ -562,18 +562,18 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-20"
           >
-            <span className="text-sm uppercase tracking-[0.3em] text-violet-600 dark:text-violet-400 font-medium">
-              Pricing
+            <span className="text-sm uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-400 font-medium">
+              Packages
             </span>
             <h2 className="mt-4 text-4xl md:text-5xl lg:text-6xl font-medium text-zinc-900 dark:text-white">
               Simple,{' '}
-              <span className="font-cursive italic text-violet-600 dark:text-violet-400">
+              <span className="font-cursive italic text-cyan-600 dark:text-cyan-400">
                 Transparent
               </span>{' '}
               Pricing
             </h2>
             <p className="mt-6 text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
-              No hidden fees. No surprises. Just premium swag at honest prices.
+              No hidden fees. Designed for community budgets of all sizes.
             </p>
           </motion.div>
 
@@ -596,9 +596,9 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-32 bg-zinc-900 dark:bg-zinc-950 relative overflow-hidden">
         {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 via-transparent to-purple-600/20" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/20 via-transparent to-teal-600/20" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl" />
         
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
@@ -609,19 +609,19 @@ export default function LandingPage() {
           >
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-medium text-white">
               Ready to{' '}
-              <span className="font-cursive italic bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
-                Transform
+              <span className="font-cursive italic bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
+                Energize
               </span>{' '}
-              Your Brand?
+              Your Community?
             </h2>
             <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
-              Join thousands of companies who trust us with their corporate merchandise. 
+              Join thousands of communities that trust DevRelSquad for their merchandise. 
               Let's create something amazing together.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
               <Link
                 href="/shop"
-                className="group inline-flex items-center gap-2 px-8 py-4 bg-white text-zinc-900 rounded-full font-medium hover:bg-violet-50 transition-colors shadow-xl shadow-violet-500/10"
+                className="group inline-flex items-center gap-2 px-8 py-4 bg-white text-zinc-900 rounded-full font-medium hover:bg-cyan-50 transition-colors shadow-xl shadow-cyan-500/10"
               >
                 <FiShoppingBag className="w-5 h-5" />
                 Start Shopping
@@ -644,15 +644,15 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div className="md:col-span-2">
-              <Link href="/" className="text-3xl font-cursive italic text-white hover:text-violet-400 transition-colors">
-                SwagStore
+              <Link href="/" className="text-3xl font-cursive italic text-white hover:text-cyan-400 transition-colors">
+                DRS Swag
               </Link>
               <p className="mt-4 text-zinc-400 max-w-sm leading-relaxed">
-                Premium corporate merchandise that elevates your brand and delights your team.
+                Premium developer merchandise that elevates your community and delights your team. Powered by DevRelSquad.
               </p>
               <div className="mt-6 flex items-center gap-4">
-                <FiHeart className="w-4 h-4 text-violet-400" />
-                <span className="text-sm text-zinc-500">Made with love for modern teams</span>
+                <FiHeart className="w-4 h-4 text-cyan-400" />
+                <span className="text-sm text-zinc-500">Made with love for developers</span>
               </div>
             </div>
             
@@ -679,10 +679,10 @@ export default function LandingPage() {
           
           <div className="pt-8 border-t border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-zinc-500">
-              © 2026 <span className="font-cursive italic text-zinc-400">SwagStore</span>. All rights reserved.
+              © 2026 <span className="font-cursive italic text-zinc-400">DevRelSquad</span>. All rights reserved.
             </p>
             <p className="text-xs text-zinc-600">
-              Crafted with precision for brands that demand excellence
+              Crafted with precision for the builders of tomorrow.
             </p>
           </div>
         </div>

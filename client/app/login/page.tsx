@@ -45,7 +45,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-xl p-8">
         <div className="text-center mb-8">
            <h1 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">
-             {isLogin ? 'Welcome Back' : 'Join SwagStore'}
+             {isLogin ? 'Welcome Back' : 'Join DRS Swag'}
            </h1>
            <p className="text-zinc-500 dark:text-zinc-400">
              {isLogin ? 'Sign in to manage your orders' : 'Create an account to start shopping'}

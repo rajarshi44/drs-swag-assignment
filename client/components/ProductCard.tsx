@@ -89,7 +89,7 @@ export default function ProductCard({ product }: { product: Product }) {
         {/* Title and Price Row */}
         <div className="flex justify-between items-start gap-2 mb-2">
           <Link href={`/products/${product._id}`} className="group/link flex-1">
-            <h3 className="font-medium text-zinc-900 dark:text-white leading-snug group-hover/link:text-violet-600 dark:group-hover/link:text-violet-400 transition-colors line-clamp-2">
+            <h3 className="font-medium text-zinc-900 dark:text-white leading-snug group-hover/link:text-cyan-600 dark:group-hover/link:text-cyan-400 transition-colors line-clamp-2">
               {product.name}
             </h3>
           </Link>
@@ -118,7 +118,7 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
           
           {product.tieredPricing && product.tieredPricing.length > 0 && (
-            <span className="text-xs text-violet-600 dark:text-violet-400 font-medium">
+            <span className="text-xs text-cyan-600 dark:text-cyan-400 font-medium">
               Bulk pricing
             </span>
           )}

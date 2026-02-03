@@ -51,8 +51,8 @@ export default function AdminChat({ fullHeight = false }: AdminChatProps) {
   return (
     <div className={`bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col ${fullHeight ? 'h-full' : 'h-[500px]'}`}>
       <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex items-center gap-2">
-        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-           <FiCpu className="text-purple-600 dark:text-purple-400" />
+        <div className="p-2 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
+           <FiCpu className="text-cyan-600 dark:text-cyan-400" />
         </div>
         <div>
            <h3 className="font-semibold text-zinc-900 dark:text-white">AI Copilot</h3>
@@ -99,12 +99,12 @@ export default function AdminChat({ fullHeight = false }: AdminChatProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about revenue, stock, or coupons..."
-            className="flex-1 rounded-xl border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-purple-500 dark:border-zinc-800 dark:bg-zinc-950 dark:focus:border-purple-500 transition-colors"
+            className="flex-1 rounded-xl border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-cyan-500 dark:border-zinc-800 dark:bg-zinc-950 dark:focus:border-cyan-500 transition-colors"
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="bg-purple-600 text-white p-2 rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="bg-cyan-600 text-white p-2 rounded-xl hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <FiSend className="w-5 h-5" />
           </button>

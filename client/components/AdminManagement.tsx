@@ -135,7 +135,7 @@ export default function AdminManagement() {
           onClick={() => setActiveTab('products')}
           className={`flex-1 py-4 px-6 font-medium text-sm flex items-center justify-center gap-2 transition-colors ${
             activeTab === 'products'
-              ? 'bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white border-b-2 border-purple-500'
+              ? 'bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white border-b-2 border-cyan-500'
               : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
           }`}
         >
@@ -145,7 +145,7 @@ export default function AdminManagement() {
           onClick={() => setActiveTab('coupons')}
           className={`flex-1 py-4 px-6 font-medium text-sm flex items-center justify-center gap-2 transition-colors ${
             activeTab === 'coupons'
-              ? 'bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white border-b-2 border-purple-500'
+              ? 'bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white border-b-2 border-cyan-500'
               : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
           }`}
         >
@@ -161,7 +161,7 @@ export default function AdminManagement() {
               <h3 className="font-semibold text-zinc-900 dark:text-white">Manage Products</h3>
               <button
                 onClick={() => setShowAddProduct(!showAddProduct)}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors text-sm font-medium"
               >
                 <FiPlus /> Add Product
               </button>
@@ -259,7 +259,7 @@ export default function AdminManagement() {
               <h3 className="font-semibold text-zinc-900 dark:text-white">Manage Coupons</h3>
               <button
                 onClick={() => setShowAddCoupon(!showAddCoupon)}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors text-sm font-medium"
               >
                 <FiPlus /> Add Coupon
               </button>
@@ -333,7 +333,7 @@ export default function AdminManagement() {
                         <div className="flex items-center gap-2">
                           <p className="font-mono font-bold text-zinc-900 dark:text-white">{coupon.code}</p>
                           {isExpired && <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded">EXPIRED</span>}
-                          {isFree && <span className="text-xs bg-purple-500 text-white px-2 py-0.5 rounded">FREE ITEM</span>}
+                          {isFree && <span className="text-xs bg-cyan-500 text-white px-2 py-0.5 rounded">FREE ITEM</span>}
                         </div>
                         <p className="text-xs text-zinc-500">
                           {coupon.type === 'percent' ? `${coupon.value}% off` : `$${coupon.value} off`}

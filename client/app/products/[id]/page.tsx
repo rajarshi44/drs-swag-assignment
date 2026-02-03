@@ -137,7 +137,7 @@ export default function ProductDetailPage() {
         <Navbar />
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
           <p className="text-zinc-500 font-cursive italic text-xl">Product not found</p>
-          <Link href="/" className="text-violet-600 hover:text-violet-700 transition-colors">
+          <Link href="/" className="text-cyan-600 hover:text-cyan-700 transition-colors">
             ← Back to shop
           </Link>
         </div>

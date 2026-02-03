@@ -24,8 +24,8 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "SwagStore - Corporate Merch",
-  description: "Premium Swag for your Team",
+  title: "DevRelSquad Swag - Developer Community Gear",
+  description: "Premium merchandise for the developer community.",
 };
 
 export default function RootLayout({

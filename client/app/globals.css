@@ -19,8 +19,10 @@ html {
 :root {
   --background: #fafafa;
   --foreground: #18181b;
-  --accent: #7c3aed;
-  --accent-light: #a78bfa;
+  --accent: #06b6d4; /* Cyan-500 */
+  --accent-light: #67e8f9; /* Cyan-300 */
+  --accent-secondary: #10b981; /* Emerald-500 */
+  --accent-warm: #f97316; /* Orange-500 */
   --card-bg: #ffffff;
   --border: #e4e4e7;
 }
@@ -37,8 +39,10 @@ html {
   :root {
     --background: #09090b;
     --foreground: #fafafa;
-    --accent: #8b5cf6;
-    --accent-light: #c4b5fd;
+    --accent: #22d3ee; /* Cyan-400 */
+    --accent-light: #a5f3fc; /* Cyan-200 */
+    --accent-secondary: #34d399; /* Emerald-400 */
+    --accent-warm: #fb923c; /* Orange-400 */
     --card-bg: #18181b;
     --border: #27272a;
   }

@@ -102,7 +102,7 @@ export default function AdminPage() {
                 {isActive && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute inset-0 bg-gradient-to-r from-purple-600 to-purple-500 rounded-lg"
+                    className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-teal-500 rounded-lg"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
