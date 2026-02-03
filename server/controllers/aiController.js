@@ -20,32 +20,50 @@ const chatWithAI = async (req, res) => {
 
         // 1. Gather Context
         const products = await Product.find({}, 'name stock price category');
-        const orders = await Order.find({}, 'finalAmount createdAt status'); // Limit fetching to avoid token limits if many
-        const coupons = await Coupon.find({}, 'code isActive expirationDate usedCount');
+        const orders = await Order.find({}, 'finalAmount createdAt status isDelivered');
+        const coupons = await Coupon.find({}, 'code isActive expirationDate usedCount value type');
+
+        // Summarize data for AI to save tokens and give better "bird's eye view"
+        const lowStock = products.filter(p => p.stock < 10).map(p => `${p.name} (${p.stock})`);
+        const activeCoupons = coupons.filter(c => c.isActive && new Date(c.expirationDate) > new Date()).map(c => c.code);
+        const todayRevenue = orders
+            .filter(o => new Date(o.createdAt).toDateString() === new Date().toDateString())
+            .reduce((acc, o) => acc + o.finalAmount, 0);
 
         const context = {
-            productsStr: JSON.stringify(products),
-            ordersSummary: `Total Orders: ${orders.length}, Total Revenue: $${orders.reduce((acc, o) => acc + o.finalAmount, 0)}`,
-            couponsStr: JSON.stringify(coupons)
+            summary: {
+                totalRevenue: orders.reduce((acc, o) => acc + o.finalAmount, 0),
+                totalOrders: orders.length,
+                todayRevenue,
+                lowStockItems: lowStock,
+                activeCoupons
+            },
+            productsList: JSON.stringify(products), // Providing full list for specific Qs
+            recentOrders: JSON.stringify(orders.slice(0, 5)) // detailed recent ones
         };
 
         const prompt = `
         You are an intelligent admin assistant for a Swag Commerce platform.
-        Here is the current database state:
+        Here is the live store data:
         
-        PRODUCTS: ${context.productsStr}
-        
-        ORDERS SUMMARY: ${context.ordersSummary}
-        
-        COUPONS: ${context.couponsStr}
+        SUMMARY STATS:
+        - Total Revenue: $${context.summary.totalRevenue}
+        - Total Orders: ${context.summary.totalOrders}
+        - Revenue Today: $${context.summary.todayRevenue}
+        - Low Stock Items: ${context.summary.lowStockItems.join(', ') || 'None'}
+        - Active Coupons: ${context.summary.activeCoupons.join(', ') || 'None'}
+
+        FULL PRODUCT LIST:
+        ${context.productsList}
+
+        RECENT ORDERS (Last 5):
+        ${context.recentOrders}
         
         User Question: "${message}"
         
-        Answer the user's question accurately based *only* on the provided data. 
-        If asking about specific stock, check the products list.
-        If asking about revenue, use the orders summary.
-        If asking about coupons, check expiry and active status.
-        Keep answers concise and professional.
+        Answer the user's question accurately based *only* on the provided data.
+        If the user asks about something outside this data, politely say you only have access to store data.
+        Keep answers professional, concise, and helpful.
         `;
 
         const result = await model.generateContent(prompt);

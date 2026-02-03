@@ -7,7 +7,7 @@ const Coupon = require('../models/Coupon');
 // @access  Public
 const createOrder = async (req, res) => {
     try {
-        const { items, customerInfo, couponCode } = req.body;
+        const { items, customerInfo, couponCode, userId } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ message: 'No order items' });
@@ -94,6 +94,7 @@ const createOrder = async (req, res) => {
 
         // Create Order
         const order = new Order({
+            user: userId,
             items: processedItems,
             customerInfo,
             originalAmount: calculatedTotal,

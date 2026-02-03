@@ -1,9 +1,17 @@
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false
+    },
     customerInfo: {
         name: { type: String, required: true },
-        email: { type: String, required: true }
+        email: { type: String, required: true },
+        address: { type: String, required: false },
+        city: { type: String, required: false },
+        zip: { type: String, required: false }
     },
     items: [{
         product: {

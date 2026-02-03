@@ -57,4 +57,31 @@ const createCoupon = async (req, res) => {
     }
 };
 
-module.exports = { validateCoupon, createCoupon };
+// @desc    Get all coupons
+// @route   GET /api/coupons
+// @access  Admin
+const getCoupons = async (req, res) => {
+    try {
+        const coupons = await Coupon.find({}).sort({ createdAt: -1 });
+        res.json(coupons);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Delete a coupon
+// @route   DELETE /api/coupons/:id
+// @access  Admin
+const deleteCoupon = async (req, res) => {
+    try {
+        const coupon = await Coupon.findByIdAndDelete(req.params.id);
+        if (!coupon) {
+            return res.status(404).json({ message: 'Coupon not found' });
+        }
+        res.json({ message: 'Coupon deleted' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { validateCoupon, createCoupon, getCoupons, deleteCoupon };
