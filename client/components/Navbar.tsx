@@ -21,7 +21,7 @@ export default function Navbar() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link 
-              href="/" 
+              href="/shop" 
               className="text-2xl font-cursive italic text-zinc-900 dark:text-white hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
             >
               SwagStore
