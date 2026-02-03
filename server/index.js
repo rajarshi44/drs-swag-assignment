@@ -4,8 +4,9 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 
 const next = require('next');
+const path = require('path');
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 connectDB();
 
@@ -30,7 +31,8 @@ nextApp.prepare().then(() => {
   app.use('/api/ai', require('./routes/aiRoutes'));
   app.use('/api/users', require('./routes/userRoutes'));
 
-  app.get('*', (req, res) => {
+  // Handle all other routes with Next.js
+  app.all(/(.*)/, (req, res) => {
     return handle(req, res);
   });
 
