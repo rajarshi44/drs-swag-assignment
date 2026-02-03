@@ -48,11 +48,25 @@ export default function AdminChat({ fullHeight = false }: AdminChatProps) {
     }
   };
 
+  // Helper to format text with **bold** and newlines
+  const formatMessage = (text: string) => {
+    return text.split('\n').map((line, i) => (
+      <span key={i} className="block min-h-[1.2em]">
+        {line.split(/(\*\*.*?\*\*)/).map((part, j) => {
+          if (part.startsWith('**') && part.endsWith('**')) {
+            return <strong key={j} className="font-bold text-cyan-700 dark:text-cyan-300">{part.slice(2, -2)}</strong>;
+          }
+          return part;
+        })}
+      </span>
+    ));
+  };
+
   return (
     <div className={`bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden flex flex-col ${fullHeight ? 'h-full' : 'h-[500px]'}`}>
-      <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex items-center gap-2">
-        <div className="p-2 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
-           <FiCpu className="text-cyan-600 dark:text-cyan-400" />
+      <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex items-center gap-3">
+        <div className="p-2 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl shadow-lg shadow-cyan-500/20">
+           <FiCpu className="text-white w-5 h-5" />
         </div>
         <div>
            <h3 className="font-semibold text-zinc-900 dark:text-white">AI Copilot</h3>
@@ -60,7 +74,7 @@ export default function AdminChat({ fullHeight = false }: AdminChatProps) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-zinc-50/50 dark:bg-black/20">
         {messages.map((msg, idx) => (
           <motion.div 
             key={idx}
@@ -68,45 +82,45 @@ export default function AdminChat({ fullHeight = false }: AdminChatProps) {
             animate={{ opacity: 1, y: 0 }}
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
+            <div className={`max-w-[85%] rounded-2xl px-5 py-3.5 text-sm leading-relaxed shadow-sm ${
                 msg.role === 'user' 
-                ? 'bg-black text-white dark:bg-white dark:text-black rounded-tr-none' 
-                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-tl-none'
+                ? 'bg-zinc-900 text-white dark:bg-white dark:text-black rounded-tr-none' 
+                : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-tl-none border border-zinc-100 dark:border-zinc-700/50'
             }`}>
-              {msg.content}
+              {formatMessage(msg.content)}
             </div>
           </motion.div>
         ))}
         {isLoading && (
           <div className="flex justify-start">
-             <div className="bg-zinc-100 dark:bg-zinc-800 rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-1">
-                <span className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '0ms'}}></span>
-                <span className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '150ms'}}></span>
-                <span className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: '300ms'}}></span>
+             <div className="bg-white dark:bg-zinc-800 rounded-2xl rounded-tl-none px-5 py-4 border border-zinc-100 dark:border-zinc-700/50 shadow-sm flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '0ms'}}></span>
+                <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '150ms'}}></span>
+                <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '300ms'}}></span>
              </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t border-zinc-100 dark:border-zinc-800">
+      <div className="p-4 bg-white dark:bg-zinc-900 border-t border-zinc-100 dark:border-zinc-800">
         <form 
           onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-          className="flex gap-2"
+          className="flex gap-2 relative"
         >
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about revenue, stock, or coupons..."
-            className="flex-1 rounded-xl border border-zinc-200 px-4 py-2 text-sm outline-none focus:border-cyan-500 dark:border-zinc-800 dark:bg-zinc-950 dark:focus:border-cyan-500 transition-colors"
+            className="flex-1 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 px-5 py-3 pr-12 text-sm outline-none focus:border-cyan-500 dark:focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/20 transition-all placeholder:text-zinc-400"
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="bg-cyan-600 text-white p-2 rounded-xl hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="absolute right-2 top-1.5 bg-cyan-600 text-white p-1.5 rounded-lg hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-cyan-500/20"
           >
-            <FiSend className="w-5 h-5" />
+            <FiSend className="w-4 h-4" />
           </button>
         </form>
       </div>

@@ -2,12 +2,28 @@
 
 import { useState, useRef, useEffect } from 'react';
 import api from '@/lib/api';
-import { FiSend, FiMessageSquare, FiX, FiCpu } from 'react-icons/fi';
+import { FiSend, FiMessageSquare, FiX, FiCpu, FiShoppingBag, FiTag, FiCopy, FiCheck } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
+import Image from 'next/image';
+
+type ProductSuggestion = {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+};
+
+type CouponSuggestion = {
+  code: string;
+  discount: string;
+};
 
 type Message = {
   role: 'user' | 'assistant';
   content: string;
+  products?: ProductSuggestion[];
+  coupon?: CouponSuggestion;
 };
 
 export default function Chatbot() {
@@ -17,6 +33,7 @@ export default function Chatbot() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [copiedCoupon, setCopiedCoupon] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -39,7 +56,13 @@ export default function Chatbot() {
 
     try {
       const { data } = await api.post('/ai/public-chat', { message: userMsg });
-      setMessages(prev => [...prev, { role: 'assistant', content: data.answer }]);
+      // Expecting structure: { answer: string, products?: [], coupon?: {} }
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: data.answer,
+        products: data.products,
+        coupon: data.coupon
+      }]);
     } catch (error) {
       console.error('Chatbot Error:', error);
       setMessages(prev => [...prev, { role: 'assistant', content: 'Oops! My circuits differ. Please try again later. 🤖' }]);
@@ -48,19 +71,25 @@ export default function Chatbot() {
     }
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedCoupon(true);
+    setTimeout(() => setCopiedCoupon(false), 2000);
+  };
+
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-4">
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
         <AnimatePresence>
           {isOpen && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="w-[350px] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[500px]"
+              className="w-[380px] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[600px] h-[500px]"
             >
               {/* Header */}
-              <div className="p-4 bg-gradient-to-r from-cyan-600 to-teal-600 flex justify-between items-center text-white">
+              <div className="p-4 bg-gradient-to-r from-cyan-600 to-teal-600 flex justify-between items-center text-white shrink-0">
                 <div className="flex items-center gap-2">
                   <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
                     <FiCpu className="w-5 h-5" />
@@ -79,19 +108,70 @@ export default function Chatbot() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 h-[350px] bg-zinc-50 dark:bg-zinc-950">
+              <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-zinc-50 dark:bg-zinc-950">
                 {messages.map((msg, idx) => (
                   <div 
                     key={idx}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    className={`flex flex-col gap-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
                   >
-                    <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
+                    {/* Text Bubble */}
+                    <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm whitespace-pre-wrap ${
                         msg.role === 'user' 
                         ? 'bg-cyan-600 text-white rounded-br-none' 
                         : 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-bl-none border border-zinc-100 dark:border-zinc-700'
                     }`}>
                       {msg.content}
                     </div>
+
+                    {/* Products Carousel */}
+                    {msg.role === 'assistant' && msg.products && msg.products.length > 0 && (
+                      <div className="w-full flex gap-3 overflow-x-auto pb-2 px-1 scrollbar-hide snap-x">
+                        {msg.products.map((product) => (
+                          <div key={product.id} className="snap-center min-w-[200px] w-[200px] bg-white dark:bg-zinc-800 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-sm flex-shrink-0">
+                            <div className="relative h-24 w-full bg-zinc-100 dark:bg-zinc-900">
+                                <img 
+                                    src={product.image} 
+                                    alt={product.name} 
+                                    className='w-full h-full object-cover'
+                                />
+                            </div>
+                            <div className="p-3">
+                              <h4 className="font-medium text-xs text-zinc-900 dark:text-zinc-100 line-clamp-1">{product.name}</h4>
+                              <p className="text-cyan-600 dark:text-cyan-400 font-bold text-sm mt-1">${product.price.toFixed(2)}</p>
+                              <Link 
+                                href={`/shop/${product.id}`}
+                                className="mt-2 block w-full text-center py-1.5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-medium rounded-lg hover:opacity-90 transition-opacity"
+                              >
+                                View Details
+                              </Link>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Coupon Card */}
+                    {msg.role === 'assistant' && msg.coupon && (
+                      <div className="max-w-[85%] bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-0.5 shadow-md">
+                        <div className="bg-white dark:bg-zinc-900 rounded-[10px] p-3 flex flex-col gap-2">
+                           <div className="flex items-center gap-2 text-amber-600 dark:text-amber-500">
+                              <FiTag className="w-4 h-4" />
+                              <span className="text-xs font-bold uppercase tracking-wider">Exclusive Deal</span>
+                           </div>
+                           <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                             Use code <span className="font-mono font-bold text-amber-600 dark:text-amber-500">{msg.coupon.code}</span> for {msg.coupon.discount}!
+                           </p>
+                           <button 
+                             onClick={() => copyToClipboard(msg.coupon!.code)}
+                             className="flex items-center justify-center gap-2 w-full py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+                           >
+                             {copiedCoupon ? <FiCheck /> : <FiCopy />}
+                             {copiedCoupon ? 'Copied!' : 'Copy Code'}
+                           </button>
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                 ))}
                 {isLoading && (
@@ -107,7 +187,7 @@ export default function Chatbot() {
               </div>
 
               {/* Input */}
-              <div className="p-3 bg-white dark:bg-zinc-900 border-t border-zinc-100 dark:border-zinc-800">
+              <div className="p-3 bg-white dark:bg-zinc-900 border-t border-zinc-100 dark:border-zinc-800 shrink-0">
                 <form 
                   onSubmit={(e) => { e.preventDefault(); handleSend(); }}
                   className="flex gap-2"

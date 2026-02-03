@@ -78,6 +78,18 @@ const chatWithAI = async (req, res) => {
     }
 };
 
+// Simple in-memory cache
+let productCache = {
+    data: null,
+    timestamp: 0
+};
+let couponCache = {
+    data: null,
+    timestamp: 0
+};
+
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 // @desc    Chat with AI as a shopper (Sales Assistant)
 // @route   POST /api/ai/public-chat
 // @access  Public
@@ -91,18 +103,51 @@ const chatWithShopper = async (req, res) => {
         }
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-flash-latest",
+            generationConfig: { responseMimeType: "application/json" }
+        });
 
-        // 1. Gather Context (Public Info Only)
-        const products = await Product.find({}, 'name description price category stock features');
-        const activeCoupons = await Coupon.find({ 
-            isActive: true, 
-            expirationDate: { $gt: new Date() },
-            type: { $ne: 'fixed' } // Maybe hide fixed high-value coupons if they are secret? or just show percent ones.
-        }, 'code value type');
+        // 1. Gather Context (with caching)
+        const now = Date.now();
+        
+        let products;
+        if (productCache.data && (now - productCache.timestamp < CACHE_TTL)) {
+            products = productCache.data;
+        } else {
+            console.log("Fetching products to refresh cache...");
+            products = await Product.find({}, 'name description price category stock features image hasVariants').lean();
+            productCache = { data: products, timestamp: now };
+            console.log("Products cached:", products.length);
+        }
+
+        let activeCoupons;
+        if (couponCache.data && (now - couponCache.timestamp < CACHE_TTL)) {
+            activeCoupons = couponCache.data;
+        } else {
+            console.log("Fetching coupons to refresh cache...");
+            activeCoupons = await Coupon.find({ 
+                isActive: true, 
+                expirationDate: { $gt: new Date() },
+                type: { $ne: 'fixed' } 
+            }, 'code value type').lean();
+            couponCache = { data: activeCoupons, timestamp: now };
+            console.log("Coupons cached:", activeCoupons.length);
+        }
+
+        // 2. Prepare Minimal Context for AI (Save Tokens)
+        // Map products to a smaller structure, REMOVING IMAGES and minimal description
+        const simpleProducts = products.map(p => ({
+            id: p._id,
+            name: p.name,
+            price: p.price,
+            category: p.category,
+            stock: p.stock,
+            desc: p.description ? p.description.substring(0, 100) + '...' : '' // Truncate description
+        }));
 
         const context = {
-            products: JSON.stringify(products),
+            products: JSON.stringify(simpleProducts),
             coupons: JSON.stringify(activeCoupons)
         };
 
@@ -117,11 +162,21 @@ const chatWithShopper = async (req, res) => {
         GUIDELINES:
         - Be friendly, tech-savvy, and use emojis ⚡️🚀.
         - Recommend products based on the user's query.
-        - If they ask for a discount, check the Active Coupons list and give them a code if available.
-        - DO NOT mention backend IDs or internal data.
-        - If you don't know something, suggest they browse the shop.
-        - Keep answers short (max 3 sentences).
+        - If they ask for a discount, check the Active Coupons list and suggest one.
+        - Return PURE JSON.
+        
+        CRITICAL: 
+        - DO NOT invent products. Use the provided "id" from the STORE DATA.
+        - In the "productIds" array, return ONLY the exact strings from the "id" field of the products you recommend.
+        - Do not return product details in the JSON, just the IDs. The system will look them up.
 
+        OUTPUT JSON SCHEMA:
+        {
+            "answer": "String. The conversational answer to the user.",
+            "recommendedProductIds": ["String (id1)", "String (id2)"],
+            "couponCode": "String (optional, only if suggesting a specific coupon)"
+        }
+        
         User Question: "${message}"
         `;
 
@@ -129,11 +184,64 @@ const chatWithShopper = async (req, res) => {
         const response = await result.response;
         const text = response.text();
 
-        res.json({ answer: text });
+        // 3. Parse & Rehydrate
+        let jsonResponse;
+        try {
+            jsonResponse = JSON.parse(text);
+        } catch (e) {
+            console.error("Failed to parse AI JSON:", text);
+            jsonResponse = { answer: text, recommendedProductIds: [], couponCode: null };
+        }
+
+        // Rehydrate Products (Map IDs back to full objects from cache)
+        const rehydratedProducts = [];
+        if (jsonResponse.recommendedProductIds && Array.isArray(jsonResponse.recommendedProductIds)) {
+            jsonResponse.recommendedProductIds.forEach(id => {
+                const fullProduct = products.find(p => p._id.toString() === id);
+                if (fullProduct) {
+                    rehydratedProducts.push({
+                        id: fullProduct._id,
+                        name: fullProduct.name,
+                        price: fullProduct.price,
+                        image: fullProduct.image // Re-attach the image here!
+                    });
+                }
+            });
+        }
+
+        // Rehydrate Coupon
+        let rehydratedCoupon = null;
+        if (jsonResponse.couponCode) {
+            const fullCoupon = activeCoupons.find(c => c.code === jsonResponse.couponCode);
+            if (fullCoupon) {
+                rehydratedCoupon = {
+                    code: fullCoupon.code,
+                    discount: `${fullCoupon.value}%` // Assuming % for now based on previous logic, or adapt
+                };
+            }
+        }
+
+        // Final Response Structure
+        res.json({
+            answer: jsonResponse.answer,
+            products: rehydratedProducts,
+            coupon: rehydratedCoupon
+        });
 
     } catch (error) {
         console.error('Public AI Error:', error);
-        res.status(500).json({ message: 'AI Service Error: ' + error.message });
+        
+        if (error.message.includes('429')) {
+             return res.status(200).json({ 
+                answer: "I'm receiving a lot of messages right now! 🤯 Please give me a minute to cool down my circuits.",
+                products: [],
+                coupon: null
+            });
+        }
+
+        res.status(500).json({ 
+            message: 'AI Service Error: ' + error.message
+        });
     }
 };
 
