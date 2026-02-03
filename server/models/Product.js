@@ -51,12 +51,13 @@ const productSchema = new mongoose.Schema({
     },
     image: {
         type: String,
-        required: [true, 'Product image URL is required'],
+        required: [true, 'Product image is required'],
         validate: {
             validator: function(v) {
-                return /^https?:\/\/.+\..+/.test(v);
+                // Accept both regular URLs and base64 data URIs
+                return /^https?:\/\/.+\..+/.test(v) || /^data:image\/(png|jpeg|jpg|gif|webp);base64,/.test(v);
             },
-            message: 'Please provide a valid image URL'
+            message: 'Please provide a valid image URL or upload an image'
         }
     },
     // For products without variants (simple products)

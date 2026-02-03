@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
-import { FiPlus, FiTrash2, FiTag, FiPercent, FiDollarSign, FiCalendar } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiTag, FiPercent, FiDollarSign, FiCalendar, FiAlertCircle } from 'react-icons/fi';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -15,6 +15,8 @@ interface Coupon {
   usageLimit: number | null;
   usedCount: number;
   isActive: boolean;
+  minOrderAmount?: number;
+  maxDiscountAmount?: number;
 }
 
 interface CouponsPanelProps {
@@ -25,6 +27,7 @@ export default function CouponsPanel({ onCountChange }: CouponsPanelProps) {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [showAddCoupon, setShowAddCoupon] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [couponForm, setCouponForm] = useState({
     code: '',
@@ -32,7 +35,9 @@ export default function CouponsPanel({ onCountChange }: CouponsPanelProps) {
     value: 0,
     expirationDate: '',
     usageLimit: 0,
-    isActive: true
+    isActive: true,
+    minOrderAmount: 0,
+    maxDiscountAmount: 0
   });
 
   useEffect(() => {
@@ -51,20 +56,68 @@ export default function CouponsPanel({ onCountChange }: CouponsPanelProps) {
     }
   };
 
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!couponForm.code.trim() || couponForm.code.length < 3) {
+      newErrors.code = 'Code must be at least 3 characters';
+    }
+    if (couponForm.code.length > 20) {
+      newErrors.code = 'Code cannot exceed 20 characters';
+    }
+    if (couponForm.value <= 0) {
+      newErrors.value = 'Discount value must be greater than 0';
+    }
+    // Key validation: percent must be 0-100
+    if (couponForm.type === 'percent' && couponForm.value > 100) {
+      newErrors.value = 'Percentage discount cannot exceed 100%';
+    }
+    if (!couponForm.expirationDate) {
+      newErrors.expirationDate = 'Expiration date is required';
+    } else if (new Date(couponForm.expirationDate) <= new Date()) {
+      newErrors.expirationDate = 'Expiration date must be in the future';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleAddCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast.error('Please fix the errors before submitting');
+      return;
+    }
+    
     try {
       await api.post('/coupons', {
         ...couponForm,
-        usageLimit: couponForm.usageLimit === 0 ? null : couponForm.usageLimit
+        usageLimit: couponForm.usageLimit === 0 ? null : couponForm.usageLimit,
+        minOrderAmount: couponForm.minOrderAmount || 0,
+        maxDiscountAmount: couponForm.maxDiscountAmount || null
       });
       toast.success('Coupon created successfully!');
-      setCouponForm({ code: '', type: 'percent', value: 0, expirationDate: '', usageLimit: 0, isActive: true });
+      resetForm();
       setShowAddCoupon(false);
       fetchCoupons();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to create coupon');
     }
+  };
+
+  const resetForm = () => {
+    setCouponForm({
+      code: '',
+      type: 'percent',
+      value: 0,
+      expirationDate: '',
+      usageLimit: 0,
+      isActive: true,
+      minOrderAmount: 0,
+      maxDiscountAmount: 0
+    });
+    setErrors({});
   };
 
   const handleDeleteCoupon = async (id: string) => {
@@ -76,6 +129,23 @@ export default function CouponsPanel({ onCountChange }: CouponsPanelProps) {
     } catch (error) {
       toast.error('Failed to delete coupon');
     }
+  };
+
+  // Reset value when switching types if it exceeds limits
+  const handleTypeChange = (newType: 'percent' | 'fixed') => {
+    let newValue = couponForm.value;
+    if (newType === 'percent' && newValue > 100) {
+      newValue = 100;
+    }
+    setCouponForm({ ...couponForm, type: newType, value: newValue });
+    setErrors({ ...errors, value: '' });
+  };
+
+  // Get tomorrow's date for min date
+  const getTomorrowDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
   };
 
   if (isLoading) {
@@ -100,7 +170,7 @@ export default function CouponsPanel({ onCountChange }: CouponsPanelProps) {
           </div>
         </div>
         <button
-          onClick={() => setShowAddCoupon(!showAddCoupon)}
+          onClick={() => { setShowAddCoupon(!showAddCoupon); if (!showAddCoupon) resetForm(); }}
           className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
         >
           <FiPlus className="w-4 h-4" />
@@ -119,52 +189,125 @@ export default function CouponsPanel({ onCountChange }: CouponsPanelProps) {
           >
             <form onSubmit={handleAddCoupon} className="p-5 bg-zinc-50 dark:bg-zinc-800/50 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="Coupon Code (e.g., SAVE20)"
-                  value={couponForm.code}
-                  onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })}
-                  required
-                  className="col-span-full p-3 rounded-lg border dark:bg-zinc-900 dark:border-zinc-700 uppercase focus:ring-2 focus:ring-purple-500 outline-none transition-all font-mono"
-                />
-                <select
-                  value={couponForm.type}
-                  onChange={(e) => setCouponForm({ ...couponForm, type: e.target.value as 'percent' | 'fixed' })}
-                  className="p-3 rounded-lg border dark:bg-zinc-900 dark:border-zinc-700 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-                >
-                  <option value="percent">Percentage (%)</option>
-                  <option value="fixed">Fixed Amount ($)</option>
-                </select>
-                <input
-                  type="number"
-                  placeholder={couponForm.type === 'percent' ? '% off (e.g., 20)' : '$ off (e.g., 10)'}
-                  value={couponForm.value || ''}
-                  onChange={(e) => setCouponForm({ ...couponForm, value: parseFloat(e.target.value) })}
-                  required
-                  min="0"
-                  max={couponForm.type === 'percent' ? 100 : undefined}
-                  className="p-3 rounded-lg border dark:bg-zinc-900 dark:border-zinc-700 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-                />
-                <input
-                  type="date"
-                  value={couponForm.expirationDate}
-                  onChange={(e) => setCouponForm({ ...couponForm, expirationDate: e.target.value })}
-                  required
-                  className="p-3 rounded-lg border dark:bg-zinc-900 dark:border-zinc-700 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-                />
-                <input
-                  type="number"
-                  placeholder="Usage Limit (0 = unlimited)"
-                  value={couponForm.usageLimit || ''}
-                  onChange={(e) => setCouponForm({ ...couponForm, usageLimit: parseInt(e.target.value) || 0 })}
-                  min="0"
-                  className="p-3 rounded-lg border dark:bg-zinc-900 dark:border-zinc-700 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-                />
+                {/* Coupon Code */}
+                <div className="col-span-full">
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                    Coupon Code *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., SAVE20, WELCOME10"
+                    value={couponForm.code}
+                    onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })}
+                    maxLength={20}
+                    className={`w-full p-3 rounded-lg border ${errors.code ? 'border-red-500' : 'dark:border-zinc-700'} dark:bg-zinc-900 uppercase focus:ring-2 focus:ring-purple-500 outline-none transition-all font-mono text-lg tracking-wider`}
+                  />
+                  {errors.code && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><FiAlertCircle /> {errors.code}</p>}
+                </div>
+
+                {/* Discount Type */}
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                    Discount Type *
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleTypeChange('percent')}
+                      className={`flex-1 py-3 px-4 rounded-lg border flex items-center justify-center gap-2 transition-all ${
+                        couponForm.type === 'percent'
+                          ? 'bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                          : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300'
+                      }`}
+                    >
+                      <FiPercent className="w-4 h-4" />
+                      Percentage
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleTypeChange('fixed')}
+                      className={`flex-1 py-3 px-4 rounded-lg border flex items-center justify-center gap-2 transition-all ${
+                        couponForm.type === 'fixed'
+                          ? 'bg-green-100 border-green-500 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                          : 'border-zinc-200 dark:border-zinc-700 hover:border-zinc-300'
+                      }`}
+                    >
+                      <FiDollarSign className="w-4 h-4" />
+                      Fixed Amount
+                    </button>
+                  </div>
+                </div>
+
+                {/* Discount Value */}
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                    {couponForm.type === 'percent' ? 'Discount Percentage (0-100) *' : 'Discount Amount ($) *'}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      placeholder={couponForm.type === 'percent' ? '20' : '10.00'}
+                      value={couponForm.value || ''}
+                      onChange={(e) => {
+                        let val = parseFloat(e.target.value) || 0;
+                        // Enforce max 100 for percent type
+                        if (couponForm.type === 'percent' && val > 100) {
+                          val = 100;
+                        }
+                        setCouponForm({ ...couponForm, value: val });
+                      }}
+                      min="0"
+                      max={couponForm.type === 'percent' ? 100 : undefined}
+                      step={couponForm.type === 'percent' ? 1 : 0.01}
+                      className={`w-full p-3 rounded-lg border ${errors.value ? 'border-red-500' : 'dark:border-zinc-700'} dark:bg-zinc-900 focus:ring-2 focus:ring-purple-500 outline-none transition-all pr-12`}
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 font-medium">
+                      {couponForm.type === 'percent' ? '%' : '$'}
+                    </span>
+                  </div>
+                  {errors.value && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><FiAlertCircle /> {errors.value}</p>}
+                  {couponForm.type === 'percent' && (
+                    <p className="text-zinc-500 text-xs mt-1">Maximum allowed: 100%</p>
+                  )}
+                </div>
+
+                {/* Expiration Date */}
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                    Expiration Date *
+                  </label>
+                  <input
+                    type="date"
+                    value={couponForm.expirationDate}
+                    onChange={(e) => setCouponForm({ ...couponForm, expirationDate: e.target.value })}
+                    min={getTomorrowDate()}
+                    className={`w-full p-3 rounded-lg border ${errors.expirationDate ? 'border-red-500' : 'dark:border-zinc-700'} dark:bg-zinc-900 focus:ring-2 focus:ring-purple-500 outline-none transition-all`}
+                  />
+                  {errors.expirationDate && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><FiAlertCircle /> {errors.expirationDate}</p>}
+                </div>
+
+                {/* Usage Limit */}
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                    Usage Limit
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="0 = Unlimited"
+                    value={couponForm.usageLimit || ''}
+                    onChange={(e) => setCouponForm({ ...couponForm, usageLimit: parseInt(e.target.value) || 0 })}
+                    min="0"
+                    className="w-full p-3 rounded-lg border dark:border-zinc-700 dark:bg-zinc-900 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                  />
+                  <p className="text-zinc-500 text-xs mt-1">Leave at 0 for unlimited uses</p>
+                </div>
               </div>
-              <div className="flex gap-3">
+
+              {/* Submit Buttons */}
+              <div className="flex gap-3 pt-2">
                 <button 
                   type="button" 
-                  onClick={() => setShowAddCoupon(false)}
+                  onClick={() => { setShowAddCoupon(false); resetForm(); }}
                   className="flex-1 py-2.5 border border-zinc-200 dark:border-zinc-700 rounded-lg font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                 >
                   Cancel

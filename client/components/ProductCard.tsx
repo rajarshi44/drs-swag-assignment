@@ -2,7 +2,9 @@
 
 import { useCart } from '@/context/CartContext';
 import Image from 'next/image';
-import { useState } from 'react'; // For loading state if needed
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 interface Product {
   _id: string;
