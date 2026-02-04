@@ -56,7 +56,8 @@ A full-stack e-commerce solution for purchasing company swag, built with the "SD
     *   Server: `cd server && npm start`
     *   Client: `cd client && npm run dev`
     *   Visit `http://localhost:3000`.
-
-**Admin Credentials (from Seed):**
+or you can run npm run dev directly from root directory, i have created a script to run both frontend and backend at once
+**Admin Credentials (from Seed to Mongo):**
 *   Email: `admin@swag.com`
 *   Password: `adminpassword`
+run seed.js present in /server
