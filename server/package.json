@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "dev": "nodemon index.js",
+    "dev": "cross-env SERVE_CLIENT=false nodemon index.js",
     "seed": "node seed.js"
   },
   "keywords": [],
@@ -27,6 +27,7 @@
     "swag-store-root": "file:.."
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "nodemon": "^3.1.11"
   }
 }

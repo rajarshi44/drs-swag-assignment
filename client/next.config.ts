@@ -5,9 +5,6 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   // @ts-ignore
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   productionBrowserSourceMaps: false,
   images: {
     remotePatterns: [
