@@ -8,6 +8,8 @@ const path = require('path');
 
 dotenv.config({ path: path.join(__dirname, '.env') });
 
+const PORT = process.env.PORT || 5000;
+
 connectDB();
 
 const dev = process.env.NODE_ENV !== 'production';
