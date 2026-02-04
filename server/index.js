@@ -11,14 +11,9 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 connectDB();
 
 const dev = process.env.NODE_ENV !== 'production';
-const nextApp = next({ dev, dir: '../client' });
-const handle = nextApp.getRequestHandler();
+const serveClient = process.env.SERVE_CLIENT !== 'false';
 
-const PORT = process.env.PORT || 5000;
-
-console.log('Starting Next.js preparation...');
-nextApp.prepare().then(() => {
-  console.log('Next.js prepared. Starting Express server...');
+const startServer = (handle) => {
   const app = express();
 
   app.use(express.json({ limit: '200mb' }));
@@ -38,13 +33,33 @@ nextApp.prepare().then(() => {
   app.use('/api/ai', require('./routes/aiRoutes'));
   app.use('/api/users', require('./routes/userRoutes'));
 
-  // Handle all other routes with Next.js
-  app.all(/(.*)/, (req, res) => {
-    return handle(req, res);
-  });
+  if (handle) {
+    // Handle all other routes with Next.js
+    app.all(/(.*)/, (req, res) => {
+      return handle(req, res);
+    });
+  } else {
+    app.get('/', (req, res) => {
+      res.send('API is running in standalone mode.');
+    });
+  }
 
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-}).catch((err) => {
-  console.error('Error preparing Next.js app:', err);
-  process.exit(1);
-});
+};
+
+if (serveClient) {
+  console.log('Starting Next.js preparation...');
+  const nextApp = next({ dev, dir: '../client' });
+  const handle = nextApp.getRequestHandler();
+
+  nextApp.prepare().then(() => {
+    console.log('Next.js prepared. Starting Express server...');
+    startServer(handle);
+  }).catch((err) => {
+    console.error('Error preparing Next.js app:', err);
+    process.exit(1);
+  });
+} else {
+  console.log('Starting Express server in API-only mode...');
+  startServer(null);
+}
